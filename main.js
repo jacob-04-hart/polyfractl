@@ -90,6 +90,7 @@ window.addEventListener('DOMContentLoaded', () => {
         clearScene();
     });
 
+	// we need to change this to be generalized generate button that generates based on the selected fractal
     if (genSplitKochBtn) genSplitKochBtn.addEventListener('click', () => {
         // create a fractal instance and generate a split-Koch fractal
         const depth = 5;
@@ -123,7 +124,8 @@ window.addEventListener('DOMContentLoaded', () => {
         const top = [0.0, 0.0, -0.5];
         const bottom = [0.0, 0.0, 0.5];
 
-        // run generation asynchronously so the overlay can paint before heavy work
+        // run generation asynchronously
+		// we can have the callback be different based on the type
         setTimeout(() => {
             try {
                 if (progressMsg) progressMsg.textContent = 'Generating fractal...';
@@ -139,7 +141,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 console.error('Fractal generation error', e);
                 if (progressMsg) progressMsg.textContent = 'Generation error (see console)';
             } finally {
-                // hide overlay after a short delay so user sees final message
+                // hide overlay after a short delay
                 setTimeout(() => { if (progressEl) progressEl.style.display = 'none'; }, 500);
             }
         }, 20);
