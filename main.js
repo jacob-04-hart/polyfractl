@@ -130,7 +130,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 f.generateSplitKoch(a, b, c, top, bottom, 0,
                     f.color1, f.color2, f.color3,
                     f.color1, f.color2, f.color3);
-
+				clearScene();
                 if (f.cancelRequested() && progressMsg) progressMsg.textContent = 'Generation cancelled.';
 
                 const mesh = f.buildTrianglesMesh();
