@@ -151,5 +151,3 @@ function animate() {
     renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
-
-// renderer size is handled by resizeRendererToDisplaySize which listens to resize events

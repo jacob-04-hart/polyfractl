@@ -1,0 +1,54 @@
+{
+    "fractals": [
+        {
+            "id": "split-koch",
+            "name": "Split Koch",
+            "description": "A fractal based on the Koch curve with splits. Used as the default example.",
+            "parameters": {
+                "maxDepth": 7,
+                "colors": ["color1", "color2", "color3", "color4"],
+                "thickness": 1,
+                "splitWidth": 0.45
+            }
+        },
+        {
+            "id": "custom-2x2x2",
+            "name": "Custom 2x2x2",
+            "description": "A custom 2x2x2 fractal.",
+            "parameters": {
+                "maxDepth": 3,
+                "colors": ["color1", "color2", "color3", "color4", "color5", "color6"],
+                "pattern": [[[0,1], [1,0]], [[1,1], [0,1]]]
+            }
+        },
+        {
+            "id": "custom-3x3x3",
+            "name": "Custom 3x3x3",
+            "description": "A custom 3x3x3 fractal.",
+            "parameters": {
+                "maxDepth": 3,
+                "colors": ["color1", "color2", "color3", "color4", "color5", "color6"],
+                "pattern": [[[1,1,1], [1,0,1], [1,1,1]],[[1,0,1], [0,0,0], [1,0,1]],[[1,1,1], [1,0,1], [1,1,1]]]
+            }
+        },
+        {
+            "id": "custom-4x4x4",
+            "name": "Custom 4x4x4",
+            "description": "A custom 4x4x4 fractal.",
+            "parameters": {
+                "maxDepth": 3,
+                "colors": ["color1", "color2", "color3", "color4", "color5", "color6"],
+                "pattern": [[[0,0,1,0], [0,0,0,1], [0,0,0,0], [0,0,0,0]], [[0,0,0,0], [0,0,1,0], [0,0,0,0], [0,0,0,0]], [[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]], [[0,0,0,0], [1,0,0,0], [0,0,0,0], [0,0,1,0]]]
+            }
+        },
+        {
+            "id": "sierpinski-tetrahedron",
+            "name": "Sierpinski tetrahedron",
+            "description": "A 3d fractal based on the Sierpinski triangle.",
+            "parameters": {
+                "maxDepth": 5,
+                "colors": ["color1", "color2", "color3", "color4"]
+            }
+        }
+    ]
+}
