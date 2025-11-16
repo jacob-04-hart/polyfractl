@@ -1,15 +1,35 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import Fractal from './fractal.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
 
-const loader = new GLTFLoader();
+// Append renderer to the canvas container created by the grid layout.
+const canvasContainer = document.getElementById('canvas') || document.body;
+canvasContainer.appendChild(renderer.domElement);
+
+renderer.domElement.style.position = 'absolute';
+renderer.domElement.style.left = '0';
+renderer.domElement.style.top = '0';
+renderer.domElement.style.width = '100%';
+renderer.domElement.style.height = '100%';
+renderer.domElement.style.zIndex = '0';
+
+function resizeRendererToDisplaySize() {
+    const width = (canvasContainer.clientWidth && canvasContainer.clientWidth > 0) ? canvasContainer.clientWidth : window.innerWidth;
+    const height = (canvasContainer.clientHeight && canvasContainer.clientHeight > 0) ? canvasContainer.clientHeight : window.innerHeight;
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    renderer.setPixelRatio(DPR);
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+}
+
+// initial size
+resizeRendererToDisplaySize();
+window.addEventListener('resize', resizeRendererToDisplaySize);
 
 const addedObjects = [];
 
@@ -21,36 +41,20 @@ scene.add(directional);
 
 camera.position.set(0, 0, 6);
 
+let colors = [
+    new THREE.Color(1.0, 0.0, 0.0), // red
+    new THREE.Color(0.0, 1.0, 0.0), // green
+    new THREE.Color(0.0, 0.0, 1.0), // blue
+    new THREE.Color(1.0, 0.5, 0.0), // orange
+    new THREE.Color(1.0, 1.0, 0.0), // yellow
+    new THREE.Color(0.5, 0.0, 0.5), // purple
+    new THREE.Color(0.2, 0.3, 0.3), // learnOpenGL green]
+];
+
 // handles multiple objects if we decided this
 function addObjectToScene(obj) {
     scene.add(obj);
     addedObjects.push(obj);
-}
-
-// example object adders for testing
-function createCube() {
-    clearScene();
-    const geo = new THREE.BoxGeometry(1, 1, 1);
-    const mat = new THREE.MeshStandardMaterial({ color: 0x4caf50 });
-    const mesh = new THREE.Mesh(geo, mat);
-    return mesh;
-}
-
-// fractal class usage example
-// const f = new Fractal(scene);
-// f.addTriangle([0,0,0],[1,0,0],[0,1,0], 0xff0000);
-// f.addTriangle({x:1,y:0,z:0},{x:1,y:1,z:0},{x:0,y:1,z:0}, '#00ff00');
-// f.buildTrianglesMesh();    // creates mesh and adds to scene
-//
-// f.clear();                 // disposes mesh & clears arrays
-// f.destroy();               // final cleanup if you're done with this instance
-
-function createSphere() {
-    clearScene();
-    const geo = new THREE.SphereGeometry(0.6, 32, 32);
-    const mat = new THREE.MeshStandardMaterial({ color: 0x2196f3, metalness: 0.3, roughness: 0.6 });
-    const mesh = new THREE.Mesh(geo, mat);
-    return mesh;
 }
 
 function clearScene() {
@@ -70,40 +74,32 @@ function clearScene() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    const addCubeBtn = document.getElementById('add-cube');
-    const addSphereBtn = document.getElementById('add-sphere');
     const clearBtn = document.getElementById('clear-scene');
-    const genSplitKochBtn = document.getElementById('gen-split-koch');
+    const generateBtn = document.getElementById('generate');
     // will change this to have the objects be generated based on depth if that model was not already generated
-
-    if (addCubeBtn) addCubeBtn.addEventListener('click', () => {
-        const cube = createCube();
-        addObjectToScene(cube);
-    });
-
-    if (addSphereBtn) addSphereBtn.addEventListener('click', () => {
-        const s = createSphere();
-        addObjectToScene(s);
-    });
 
     if (clearBtn) clearBtn.addEventListener('click', () => {
         clearScene();
     });
 
 	// we need to change this to be generalized generate button that generates based on the selected fractal
-    if (genSplitKochBtn) genSplitKochBtn.addEventListener('click', () => {
-        // create a fractal instance and generate a split-Koch fractal
-        const depth = 5;
-        const f = new Fractal(scene, {}, depth);
+    if (generateBtn) generateBtn.addEventListener('click', () => {
+        // create a fractal instance and generate fractal
+        const f = new Fractal(scene, {});
 
-        // show progress
+        // these will be changable
+        f.setProperties({ "maxDepth": 5,
+                          "colors": colors,
+         });
+
+        // progress
         const progressEl = document.getElementById('progress');
         const progressMsg = document.getElementById('progress-msg');
         const progressCancel = document.getElementById('progress-cancel');
         if (progressEl) progressEl.style.display = 'block';
         if (progressMsg) progressMsg.textContent = 'Preparing generation...';
 
-        // wire cancel button
+        // cancel button
         const onCancel = () => {
             f.requestCancel();
             if (progressMsg) progressMsg.textContent = 'Cancel requested; stopping soon...';
@@ -115,24 +111,15 @@ window.addEventListener('DOMContentLoaded', () => {
             if (progressMsg) progressMsg.textContent = `Generating fractal... triangles: ${count}`;
         };
 
-        // initial vertices (equilateral triangle)
-        const sqrt3 = Math.sqrt(3);
-        const a = [1.0, 0.0, 0.0];
-        const b = [-0.5, -(sqrt3 / 2.0), 0.0];
-        const c = [-0.5, (sqrt3 / 2.0), 0.0];
-
-        const top = [0.0, 0.0, -0.5];
-        const bottom = [0.0, 0.0, 0.5];
-
         // run generation asynchronously
 		// we can have the callback be different based on the type
         setTimeout(() => {
             try {
                 if (progressMsg) progressMsg.textContent = 'Generating fractal...';
-                f.generateSplitKoch(a, b, c, top, bottom, 0,
-                    f.color1, f.color2, f.color3,
-                    f.color1, f.color2, f.color3);
-				clearScene();
+
+                f.generate();
+
+			clearScene();
                 if (f.cancelRequested() && progressMsg) progressMsg.textContent = 'Generation cancelled.';
 
                 const mesh = f.buildTrianglesMesh();
@@ -159,8 +146,4 @@ function animate() {
 }
 renderer.setAnimationLoop(animate);
 
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
+// renderer size is handled by resizeRendererToDisplaySize which listens to resize events

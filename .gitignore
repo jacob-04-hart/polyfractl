@@ -1,0 +1,45 @@
+# Node dependencies
+node_modules/
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output
+dist/
+build/
+out/
+*.map
+
+# Environment files (may contain secrets)
+.env
+.env.*.local
+.env.local
+
+# Caches, bundlers and tooling
+.cache/
+.parcel-cache/
+.vite/
+.esbuild/
+.svelte-kit/
+.next/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Logs
+*.log
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini

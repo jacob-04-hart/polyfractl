@@ -2,24 +2,35 @@
 import * as THREE from 'three';
 
 export default class Fractal {
-    constructor(scene, { doubleSided = true, materialOptions = {} } = {}, maxDepth = 4) {
+    constructor(scene, { doubleSided = true, materialOptions = {} } = {}, maxDepth = 4, properties = {}) {
         if (!scene) throw new Error('Fractal requires a THREE.Scene instance');
-        this.maxDepth = maxDepth;
         this.scene = scene;
+
+        this.maxDepth = maxDepth;
+        this.properties = { "maxDepth": maxDepth, "colors": [] };
+
+        // default color palette (can be overridden via properties.colors)
+        this.color1 = new THREE.Color(1.0, 0.0, 0.0);
+        this.color2 = new THREE.Color(0.0, 1.0, 0.0);
+        this.color3 = new THREE.Color(0.0, 0.0, 1.0);
+        this.color4 = new THREE.Color(1.0, 0.5, 0.0);
+        this.color5 = new THREE.Color(1.0, 1.0, 0.0);
+        this.color6 = new THREE.Color(0.5, 0.0, 0.5);
+        this.color7 = new THREE.Color(0.2, 0.3, 0.3);
+
+        // populate properties.colors with defaults unless provided
+        if (properties && Array.isArray(properties.colors) && properties.colors.length >= 3) {
+            this.properties.colors = properties.colors;
+        } else {
+            this.properties.colors = [this.color1, this.color2, this.color3, this.color4, this.color5, this.color6, this.color7];
+        }
 
         this._positions = []; // flat [x,y,z, x,y,z, ...]
         this._colors = [];    // flat [r,g,b, ...]
         this._mesh = null;
 
         this.materialOptions = Object.assign({ vertexColors: true, side: doubleSided ? THREE.DoubleSide : THREE.FrontSide }, materialOptions);
-        // predefined palette (RGB floats)
-        this.color1 = new THREE.Color(1.0, 0.0, 0.0); // red
-        this.color2 = new THREE.Color(0.0, 1.0, 0.0); // green
-        this.color3 = new THREE.Color(0.0, 0.0, 1.0); // blue
-        this.color4 = new THREE.Color(1.0, 0.5, 0.0); // orange
-        this.color5 = new THREE.Color(1.0, 1.0, 0.0); // yellow
-        this.color6 = new THREE.Color(0.5, 0.0, 0.5); // purple
-        this.color7 = new THREE.Color(0.2, 0.3, 0.3); // teal-ish
+
         // generation/progress state
         this._triangleCount = 0;
         this.progressCallback = null; // function(count)
@@ -31,11 +42,11 @@ export default class Fractal {
         return [v.x, v.y, v.z];
     }
 
-    addTriangle(v1, v2, v3, color = 0xcccccc) {
+    addFace(v1, v2, v3, color = 0xcccccc) {
         const a = this._toVec(v1), b = this._toVec(v2), c = this._toVec(v3);
         // quick validation
         if (![a, b, c].every(v => v.length === 3 && v.every(Number.isFinite))) {
-            throw new TypeError('addTriangle expects vertices as [x,y,z] or {x,y,z} with numeric components');
+            throw new TypeError('addFace expects vertices as [x,y,z] or {x,y,z} with numeric components');
         }
 
         const baseIndex = this._positions.length / 3;
@@ -81,16 +92,38 @@ export default class Fractal {
 
     clearMesh() {
         if (!this._mesh) return;
-        this.scene.remove(this._mesh);
-        this._mesh.traverse((c) => {
-            if (c.isMesh) {
-                if (c.geometry) c.geometry.dispose();
-                if (c.material) {
-                    if (Array.isArray(c.material)) c.material.forEach(m => m.dispose());
-                    else c.material.dispose();
+        // remove from scene
+        try {
+            this.scene.remove(this._mesh);
+        } catch (e) { }
+        try {
+            this._mesh.traverse((c) => {
+                // cast to THREE.Mesh for tooling/type-checkers; runtime object may be an Object3D
+                const meshChild = /** @type {THREE.Mesh} */ (c);
+                if (meshChild && meshChild.isMesh) {
+                    if (meshChild.geometry && typeof meshChild.geometry.dispose === 'function') {
+                        try { meshChild.geometry.dispose(); } catch (e) { /* ignore */ }
+                    }
+
+                    const _disposeMaterial = (m) => {
+                        if (!m) return;
+                        // dispose common texture maps first
+                        if (m.map && typeof m.map.dispose === 'function') {
+                            try { m.map.dispose(); } catch (e) { /* ignore */ }
+                        }
+                        if (typeof m.dispose === 'function') {
+                            try { m.dispose(); } catch (e) { /* ignore */ }
+                        }
+                    };
+
+                    if (meshChild.material) {
+                        if (Array.isArray(meshChild.material)) meshChild.material.forEach(_disposeMaterial);
+                        else _disposeMaterial(meshChild.material);
+                    }
                 }
-            }
-        });
+            });
+        } catch (e) { }
+
         this._mesh = null;
     }
 
@@ -120,33 +153,66 @@ export default class Fractal {
         ];
     }
 
-    generateSplitKoch(a, b, c, top, bottom, depth,
-        f1, f2, f3,
-        b1, b2, b3) {
-        if (depth < this.maxDepth) {
+    // index 0 will be depth, more can be added in children
+    setProperties(properties) {
+        this.properties = properties;
+        this.properties.maxDepth = properties.maxDepth;
+    }
+
+    generate(...args) {
+        // Backward-compatible API: if arguments supplied, treat as explicit generation
+        // signature: generate(a, b, c, top, bottom, depth, f1, f2, f3, b1, b2, b3)
+        if (args && args.length > 0) {
+            const [a, b, c, top, bottom, depth, f1, f2, f3, b1, b2, b3] = args;
+            return this.drawFractal(a, b, c, top, bottom, depth, f1, f2, f3, b1, b2, b3);
+        }
+
+        // no-arg form: use properties to drive generation
+        const sqrt3 = Math.sqrt(3);
+        const a = [1.0, 0.0, 0.0];
+        const b = [-0.5, -(sqrt3 / 2.0), 0.0];
+        const c = [-0.5, (sqrt3 / 2.0), 0.0];
+
+        const top = [0.0, 0.0, -0.5];
+        const bottom = [0.0, 0.0, 0.5];
+
+        return this.drawFractal(a, b, c, top, bottom, 0,
+                    this.properties.colors[0], this.properties.colors[1], this.properties.colors[2],
+                    this.properties.colors[0], this.properties.colors[1], this.properties.colors[2]);
+    }
+
+    // for now, example generate code for fractal parent
+    // f and b keep track of color
+    drawFractal(a, b, c, top, bottom, depth,
+                f1, f2, f3, b1, b2, b3) {
+
+        if (depth < this.properties.maxDepth) {
+
             const newT1 = this.split(a, b);
             const newT2 = this.split(b, a);
             const newBot2 = this.split(b, c);
             const newBot3 = this.split(c, b);
             const newT3 = this.split(c, a);
             const newBot1 = this.split(a, c);
-            this.generateSplitKoch(a, bottom, top, newT1, newBot1, depth + 1, b1, this.color4, f1, b3, this.color4, f3);
-            this.generateSplitKoch(b, top, bottom, newT2, newBot2, depth + 1, f1, this.color4, b1, b2, this.color4, f2);
-            this.generateSplitKoch(c, bottom, top, newT3, newBot3, depth + 1, b3, this.color4, f3, b2, this.color4, f2);
-        } else {
-            this.createDelta(a, b, c, top, bottom, f1, f2, f3, b1, b2, b3);
+            this.drawFractal(a, bottom, top, newT1, newBot1, depth + 1, b1, this.properties.colors[3], f1, b3, this.properties.colors[3], f3);
+            this.drawFractal(b, top, bottom, newT2, newBot2, depth + 1, f1, this.properties.colors[3], b1, b2, this.properties.colors[3], f2);
+            this.drawFractal(c, bottom, top, newT3, newBot3, depth + 1, b3, this.properties.colors[3], f3, b2, this.properties.colors[3], f2);
+
+        } else { // base case, smallest shape
+
+            this.addShape(a, b, c, top, bottom, f1, f2, f3, b1, b2, b3);
+
         }
     }
 
-    createDelta(a, b, c, top, bottom,
-        f1, f2, f3,
-        b1, b2, b3) {
+    addShape(a, b, c, top, bottom,
+            f1, f2, f3, b1, b2, b3) {
 
-        this.addTriangle(a, b, top, f1);
-        this.addTriangle(b, c, top, f2);
-        this.addTriangle(c, a, top, f3);
-        this.addTriangle(a, bottom, b, b1);
-        this.addTriangle(b, bottom, c, b2);
-        this.addTriangle(c, bottom, a, b3);
+        this.addFace(a, b, top, f1);
+        this.addFace(b, c, top, f2);
+        this.addFace(c, a, top, f3);
+        this.addFace(a, bottom, b, b1);
+        this.addFace(b, bottom, c, b2);
+        this.addFace(c, bottom, a, b3);
     }
 }

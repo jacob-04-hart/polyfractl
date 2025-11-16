@@ -2,17 +2,36 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>My first three.js app</title>
+        <title>polyfractl</title>
         <style>
-            body { margin: 0; }
-            #ui {
-                position: absolute;
-                left: 12px;
-                top: 12px;
-                display: flex;
-                gap: 8px;
-                z-index: 10;
+            html, body { height: 100%; margin: 0; }
+            /* App grid: top toolbar, canvas area, and right sidebar */
+            #app {
+                display: grid;
+                grid-template-columns: 1fr 320px; /* main + sidebar */
+                grid-template-rows: 64px 1fr;     /* top bar + content */
+                grid-template-areas:
+                    "top top"
+                    "canvas sidebar";
+                height: 100vh;
+                width: 100vw;
+                overflow: hidden;
+                background: #000;
             }
+
+            /* (no sidebar-collapse behavior) */
+
+            #top { grid-area: top; background: rgba(255,255,255,0.95); display:flex; align-items:center; padding:0 12px; box-shadow: 0 1px 0 rgba(0,0,0,0.06); z-index: 10; }
+            #title { font-family: system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial; font-size: 18px; font-weight: 600; }
+            #canvas { grid-area: canvas; position: relative; background: #000; }
+            #sidebar { grid-area: sidebar; position: relative; overflow:auto; background: #fff; border-left: 1px solid #ddd; padding: 12px; }
+
+            /* sidebar buttons */
+            #sidebar-ui { display:flex; flex-direction:column; gap:8px; align-items:flex-start; }
+            #sidebar-ui button { width: 100%; text-align: left; }
+
+            /* top inline UI (if any) */
+            #ui { display:flex; gap:8px; align-items:center; }
             #ui button {
                 background: rgba(255,255,255,0.9);
                 border: 1px solid #ccc;
@@ -22,19 +41,40 @@
                 font-family: sans-serif;
             }
             #ui button:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
+
+            /* progress overlay is positioned inside #canvas */
         </style>
     </head>
     <body>
-        <div id="ui">
-            <button id="add-cube">Add Cube</button>
-            <button id="gen-split-koch">Generate Split Koch</button>
-            <button id="add-sphere">Add Sphere</button>
-            <button id="clear-scene">Clear</button>
+        <div id="app">
+            <header id="top">
+                <div id="title">polyfractl</div>
+            </header>
+
+            <main id="canvas">
+                <div id="progress" style="display:none; position: absolute; right: 12px; top: 12px; background: rgba(0,0,0,0.7); color: #fff; padding: 10px 14px; border-radius: 6px; font-family: sans-serif; z-index:30;">
+                    <div id="progress-msg">Generating fractal...</div>
+                    <div style="margin-top:8px; text-align:right;"><button id="progress-cancel" style="background:#fff;color:#000;border:none;padding:6px 8px;border-radius:4px;cursor:pointer;">Cancel</button></div>
+                </div>
+            </main>
+
+            <aside id="sidebar">
+                <div class="sidebar-content">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <strong>Controls</strong>
+                        <div id="ui">
+                            <button id="generate">Generate Fractal</button>
+                            <button id="clear-scene">Clear</button>
+                        </div>
+                    </div>
+                    <div id="sidebar-ui">
+                        <!-- sidebar controls can be added here -->
+                    </div>
+                    <!-- additional sidebar content (controls, palettes, info) -->
+                </div>
+            </aside>
         </div>
-        <div id="progress" style="display:none; position: absolute; right: 12px; top: 12px; background: rgba(0,0,0,0.7); color: #fff; padding: 10px 14px; border-radius: 6px; z-index: 20; font-family: sans-serif;">
-            <div id="progress-msg">Generating fractal...</div>
-            <div style="margin-top:8px; text-align:right;"><button id="progress-cancel" style="background:#fff;color:#000;border:none;padding:6px 8px;border-radius:4px;cursor:pointer;">Cancel</button></div>
-        </div>
+        
         <script type="module" src="/main.js"></script>
     </body>
 </html>
