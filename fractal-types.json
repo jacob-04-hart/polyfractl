@@ -14,7 +14,7 @@
         {
             "id": "custom-2x2x2",
             "name": "Custom 2x2x2",
-            "description": "A custom 2x2x2 fractal.",
+            "description": "A custom 2x2x2 fractal. The pattern is a 3d matrix where each cell is toggle-able.",
             "parameters": {
                 "maxDepth": 3,
                 "colors": ["color1", "color2", "color3", "color4", "color5", "color6"],
@@ -24,7 +24,7 @@
         {
             "id": "custom-3x3x3",
             "name": "Custom 3x3x3",
-            "description": "A custom 3x3x3 fractal.",
+            "description": "A custom 3x3x3 fractal. The pattern is a 3d matrix where each cell is toggle-able.",
             "parameters": {
                 "maxDepth": 3,
                 "colors": ["color1", "color2", "color3", "color4", "color5", "color6"],
@@ -34,7 +34,7 @@
         {
             "id": "custom-4x4x4",
             "name": "Custom 4x4x4",
-            "description": "A custom 4x4x4 fractal.",
+            "description": "A custom 4x4x4 fractal. The pattern is a 3d matrix where each cell is toggle-able.",
             "parameters": {
                 "maxDepth": 3,
                 "colors": ["color1", "color2", "color3", "color4", "color5", "color6"],
