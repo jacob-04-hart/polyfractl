@@ -82,13 +82,12 @@ window.addEventListener('DOMContentLoaded', () => {
     const generateBtn = document.getElementById('generate');
     /** @type {HTMLSelectElement|null} */
     const typeSelect = /** @type {HTMLSelectElement|null} */ (document.getElementById('fractal-type-select'));
-    // will change this to have the objects be generated based on depth if that model was not already generated
 
     if (clearBtn) clearBtn.addEventListener('click', () => {
         clearScene();
     });
 
-    // populate the type select from fractal-types.json (keep existing Default option)
+    // populate the type select from fractal-types.json
     (async () => {
         if (!typeSelect) return;
         try {
