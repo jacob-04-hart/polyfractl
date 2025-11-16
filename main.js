@@ -91,13 +91,16 @@ window.addEventListener('DOMContentLoaded', () => {
     (async () => {
         if (!typeSelect) return;
         try {
+            // get request to fetch json
             const res = await fetch('/fractal-types.json', { cache: 'no-cache' });
+            // response is good
             if (!res.ok) return;
             const json = await res.json();
+            // list of fractal types
             const list = Array.isArray(json.fractals) ? json.fractals : [];
             for (const t of list) {
                 if (!t || !t.id) continue;
-                // don't duplicate if "default" or already present
+                // add each fractal to drop-down
                 if (typeSelect.querySelector(`option[value="${t.id}"]`)) continue;
                 const opt = document.createElement('option');
                 opt.value = t.id;
@@ -115,8 +118,13 @@ window.addEventListener('DOMContentLoaded', () => {
         try {
             const sel = (typeSelect && typeSelect.value) ? typeSelect.value : 'default';
             if (sel && sel !== 'default') {
-                // convert id to class
-                const moduleName = sel.split(/[^a-zA-Z0-9]+/).map((part, i) => i === 0 ? part.toLowerCase() : (part.charAt(0).toUpperCase() + part.slice(1))).join('');
+                // convert id to camel-case class file name - starts by splitting up words
+                const moduleName = sel.split(/[^a-zA-Z0-9]+/).map(
+                    // lowercase first word
+                    (part, i) => i === 0 ? part.toLowerCase() : 
+                    // uppercase the start of each subsequent word
+                    (part.charAt(0).toUpperCase() + part.slice(1))
+                ).join('');
                 try {
                     const mod = await import(`./${moduleName}.js`);
                     if (mod && (typeof mod.default === 'function')) {
