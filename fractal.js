@@ -5,12 +5,7 @@ export default class Fractal {
     constructor(scene, { doubleSided = true, materialOptions = {} } = {}, properties = {}) {
         if (!scene) throw new Error('Fractal requires a THREE.Scene instance');
         this.scene = scene;
-
-        // default properties
-        this.properties = { "maxDepth": 4, 
-                            "colors": [], 
-                            "thickness": 1, 
-                            "splitWidth": 0.45 };
+        this.properties = { };
 
         this._positions = []; // flat [x,y,z, x,y,z, ...]
         this._colors = [];    // flat [r,g,b, ...]
@@ -143,59 +138,39 @@ export default class Fractal {
     // index 0 will be depth, more can be added in children
     setProperties(properties) {
         this.properties = properties;
-        this.properties.maxDepth = properties.maxDepth;
-        this.properties.thickness = properties.thickness;
-        this.properties.splitWidth = properties.splitWidth;
     }
 
     generate() {
-
-        // no-arg form: use properties to drive generation
         const sqrt3 = Math.sqrt(3);
         const a = [1.0, 0.0, 0.0];
         const b = [-0.5, -(sqrt3 / 2.0), 0.0];
         const c = [-0.5, (sqrt3 / 2.0), 0.0];
+        const top = [0.0, 0.0, 0.75];
 
-        const top = [0.0, 0.0, -0.5*this.properties.thickness];
-        const bottom = [0.0, 0.0, 0.5*this.properties.thickness];
-
-        return this.drawFractal(a, b, c, top, bottom, 0,
-                    this.properties.colors[0], this.properties.colors[1], this.properties.colors[2],
-                    this.properties.colors[0], this.properties.colors[1], this.properties.colors[2]);
+        return this.drawFractal(a, b, c, top,
+                    this.properties.colors[0],
+                    this.properties.colors[1],
+                    this.properties.colors[2],
+                    this.properties.colors[3]
+                    );
     }
 
-    // for now, example generate code for fractal parent
-    // f and b keep track of color
-    drawFractal(a, b, c, top, bottom, depth,
-                f1, f2, f3, b1, b2, b3) {
+    drawFractal(a, b, c, top,
+                f1, f2, f3, f4) {
 
-        if (depth < this.properties.maxDepth) {
+        this.addShape(a, b, c, top, f1, f2, f3, f4);
 
-            const newT1 = this.split(a, b);
-            const newT2 = this.split(b, a);
-            const newBot2 = this.split(b, c);
-            const newBot3 = this.split(c, b);
-            const newT3 = this.split(c, a);
-            const newBot1 = this.split(a, c);
-            this.drawFractal(a, bottom, top, newT1, newBot1, depth + 1, b1, this.properties.colors[3], f1, b3, this.properties.colors[3], f3);
-            this.drawFractal(b, top, bottom, newT2, newBot2, depth + 1, f1, this.properties.colors[3], b1, b2, this.properties.colors[3], f2);
-            this.drawFractal(c, bottom, top, newT3, newBot3, depth + 1, b3, this.properties.colors[3], f3, b2, this.properties.colors[3], f2);
-
-        } else { // base case, smallest shape
-
-            this.addShape(a, b, c, top, bottom, f1, f2, f3, b1, b2, b3);
-
-        }
     }
 
-    addShape(a, b, c, top, bottom,
-            f1, f2, f3, b1, b2, b3) {
+    addShape(a, b, c, top,
+            f1, f2, f3, f4) {
 
-        this.addFace(a, b, top, f1);
-        this.addFace(b, c, top, f2);
-        this.addFace(c, a, top, f3);
-        this.addFace(a, bottom, b, b1);
-        this.addFace(b, bottom, c, b2);
-        this.addFace(c, bottom, a, b3);
+        try {
+            this.addFace(a, b, c, f1);
+            this.addFace(a, b, top, f2);
+            this.addFace(b, c, top, f3);
+            this.addFace(c, a, top, f4);
+        } catch (e) { }
     }
+
 }

@@ -80,16 +80,61 @@ function clearScene() {
 window.addEventListener('DOMContentLoaded', () => {
     const clearBtn = document.getElementById('clear-scene');
     const generateBtn = document.getElementById('generate');
+    /** @type {HTMLSelectElement|null} */
+    const typeSelect = /** @type {HTMLSelectElement|null} */ (document.getElementById('fractal-type-select'));
     // will change this to have the objects be generated based on depth if that model was not already generated
 
     if (clearBtn) clearBtn.addEventListener('click', () => {
         clearScene();
     });
 
-	// we need to change this to be generalized generate button that generates based on the selected fractal
-    if (generateBtn) generateBtn.addEventListener('click', () => {
+    // populate the type select from fractal-types.json (keep existing Default option)
+    (async () => {
+        if (!typeSelect) return;
+        try {
+            const res = await fetch('/fractal-types.json', { cache: 'no-cache' });
+            if (!res.ok) return;
+            const json = await res.json();
+            const list = Array.isArray(json.fractals) ? json.fractals : [];
+            for (const t of list) {
+                if (!t || !t.id) continue;
+                // don't duplicate if "default" or already present
+                if (typeSelect.querySelector(`option[value="${t.id}"]`)) continue;
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.textContent = t.name || t.id;
+                typeSelect.appendChild(opt);
+            }
+        } catch (e) {
+            console.warn('Failed to load fractal-types.json', e);
+        }
+    })();
+
+    if (generateBtn) generateBtn.addEventListener('click', async () => {
+        // determine which class to instantiate based on selection
+        let Klass = Fractal;
+        try {
+            const sel = (typeSelect && typeSelect.value) ? typeSelect.value : 'default';
+            if (sel && sel !== 'default') {
+                // convert id to class
+                const moduleName = sel.split(/[^a-zA-Z0-9]+/).map((part, i) => i === 0 ? part.toLowerCase() : (part.charAt(0).toUpperCase() + part.slice(1))).join('');
+                try {
+                    const mod = await import(`./${moduleName}.js`);
+                    if (mod && (typeof mod.default === 'function')) {
+                        Klass = mod.default;
+                    }
+                } catch (e) {
+                    console.warn('Could not import module for type', sel, e);
+                    Klass = Fractal;
+                }
+            }
+        } catch (e) {
+            console.warn('Error resolving fractal class, falling back to Fractal', e);
+            Klass = Fractal;
+        }
+
         // create a fractal instance and generate fractal
-        const f = new Fractal(scene, {});
+        const f = new Klass(scene, {});
 
         // these will be not all be used
         f.setProperties({ "maxDepth": maxDepth,
@@ -99,7 +144,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
          });
 
-        // progress
+        // progress for generation and a bail button
         const progressEl = document.getElementById('progress');
         const progressMsg = document.getElementById('progress-msg');
         const progressCancel = document.getElementById('progress-cancel');
