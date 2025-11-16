@@ -6,7 +6,7 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 
 const renderer = new THREE.WebGLRenderer();
 
-// Append renderer to the canvas container created by the grid layout.
+// containers for grid
 const canvasContainer = document.getElementById('canvas') || document.body;
 canvasContainer.appendChild(renderer.domElement);
 
