@@ -39,8 +39,10 @@ const directional = new THREE.DirectionalLight(0xffffff, 0.8);
 directional.position.set(5, 10, 7.5);
 scene.add(directional);
 
-camera.position.set(0, 0, 6);
+camera.position.set(0, 0, 3);
 
+// default properties, will not always be used
+let maxDepth = 4;
 let colors = [
     new THREE.Color(1.0, 0.0, 0.0), // red
     new THREE.Color(0.0, 1.0, 0.0), // green
@@ -50,6 +52,8 @@ let colors = [
     new THREE.Color(0.5, 0.0, 0.5), // purple
     new THREE.Color(0.2, 0.3, 0.3), // learnOpenGL green]
 ];
+let thickness = 1;
+let splitWidth = .45;
 
 // handles multiple objects if we decided this
 function addObjectToScene(obj) {
@@ -87,9 +91,12 @@ window.addEventListener('DOMContentLoaded', () => {
         // create a fractal instance and generate fractal
         const f = new Fractal(scene, {});
 
-        // these will be changable
-        f.setProperties({ "maxDepth": 5,
+        // these will be not all be used
+        f.setProperties({ "maxDepth": maxDepth,
                           "colors": colors,
+                          "thickness": thickness,
+                          "splitWidth": splitWidth,
+
          });
 
         // progress
@@ -112,7 +119,6 @@ window.addEventListener('DOMContentLoaded', () => {
         };
 
         // run generation asynchronously
-		// we can have the callback be different based on the type
         setTimeout(() => {
             try {
                 if (progressMsg) progressMsg.textContent = 'Generating fractal...';

@@ -2,28 +2,15 @@
 import * as THREE from 'three';
 
 export default class Fractal {
-    constructor(scene, { doubleSided = true, materialOptions = {} } = {}, maxDepth = 4, properties = {}) {
+    constructor(scene, { doubleSided = true, materialOptions = {} } = {}, properties = {}) {
         if (!scene) throw new Error('Fractal requires a THREE.Scene instance');
         this.scene = scene;
 
-        this.maxDepth = maxDepth;
-        this.properties = { "maxDepth": maxDepth, "colors": [] };
-
-        // default color palette (can be overridden via properties.colors)
-        this.color1 = new THREE.Color(1.0, 0.0, 0.0);
-        this.color2 = new THREE.Color(0.0, 1.0, 0.0);
-        this.color3 = new THREE.Color(0.0, 0.0, 1.0);
-        this.color4 = new THREE.Color(1.0, 0.5, 0.0);
-        this.color5 = new THREE.Color(1.0, 1.0, 0.0);
-        this.color6 = new THREE.Color(0.5, 0.0, 0.5);
-        this.color7 = new THREE.Color(0.2, 0.3, 0.3);
-
-        // populate properties.colors with defaults unless provided
-        if (properties && Array.isArray(properties.colors) && properties.colors.length >= 3) {
-            this.properties.colors = properties.colors;
-        } else {
-            this.properties.colors = [this.color1, this.color2, this.color3, this.color4, this.color5, this.color6, this.color7];
-        }
+        // default properties
+        this.properties = { "maxDepth": 4, 
+                            "colors": [], 
+                            "thickness": 1, 
+                            "splitWidth": 0.45 };
 
         this._positions = []; // flat [x,y,z, x,y,z, ...]
         this._colors = [];    // flat [r,g,b, ...]
@@ -138,7 +125,7 @@ export default class Fractal {
         this.scene = null;
     }
 
-    split(a, b, t = 0.45) {
+    split(a, b, splitWidth = this.properties.splitWidth) {
         const A = this._toVec(a);
         const B = this._toVec(b);
 
@@ -147,9 +134,9 @@ export default class Fractal {
         }
 
         return [
-            A[0] + (B[0] - A[0]) * t,
-            A[1] + (B[1] - A[1]) * t,
-            A[2] + (B[2] - A[2]) * t
+            A[0] + (B[0] - A[0]) * splitWidth,
+            A[1] + (B[1] - A[1]) * splitWidth,
+            A[2] + (B[2] - A[2]) * splitWidth
         ];
     }
 
@@ -157,15 +144,11 @@ export default class Fractal {
     setProperties(properties) {
         this.properties = properties;
         this.properties.maxDepth = properties.maxDepth;
+        this.properties.thickness = properties.thickness;
+        this.properties.splitWidth = properties.splitWidth;
     }
 
-    generate(...args) {
-        // Backward-compatible API: if arguments supplied, treat as explicit generation
-        // signature: generate(a, b, c, top, bottom, depth, f1, f2, f3, b1, b2, b3)
-        if (args && args.length > 0) {
-            const [a, b, c, top, bottom, depth, f1, f2, f3, b1, b2, b3] = args;
-            return this.drawFractal(a, b, c, top, bottom, depth, f1, f2, f3, b1, b2, b3);
-        }
+    generate() {
 
         // no-arg form: use properties to drive generation
         const sqrt3 = Math.sqrt(3);
@@ -173,8 +156,8 @@ export default class Fractal {
         const b = [-0.5, -(sqrt3 / 2.0), 0.0];
         const c = [-0.5, (sqrt3 / 2.0), 0.0];
 
-        const top = [0.0, 0.0, -0.5];
-        const bottom = [0.0, 0.0, 0.5];
+        const top = [0.0, 0.0, -0.5*this.properties.thickness];
+        const bottom = [0.0, 0.0, 0.5*this.properties.thickness];
 
         return this.drawFractal(a, b, c, top, bottom, 0,
                     this.properties.colors[0], this.properties.colors[1], this.properties.colors[2],
