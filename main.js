@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import Fractal from './fractal.js';
+import SplitKoch from 'splitKoch.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -96,7 +97,6 @@ window.addEventListener('DOMContentLoaded', () => {
             // response is good
             if (!res.ok) return;
             const json = await res.json();
-            // list of fractal types
             const list = Array.isArray(json.fractals) ? json.fractals : [];
             for (const t of list) {
                 if (!t || !t.id) continue;
