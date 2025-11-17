@@ -99,7 +99,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const json = await res.json();
             const list = Array.isArray(json.fractals) ? json.fractals : [];
             for (const t of list) {
-                if (!t || !t.id) continue;
+                if (!t || !t.id || t.id == "split-koch") continue;
                 // add each fractal to drop-down
                 if (typeSelect.querySelector(`option[value="${t.id}"]`)) continue;
                 const opt = document.createElement('option');
@@ -116,24 +116,22 @@ window.addEventListener('DOMContentLoaded', () => {
         // determine which class to instantiate based on selection, defaults to Fractal class
         let Klass = Fractal;
         try {
-            const sel = (typeSelect && typeSelect.value) ? typeSelect.value : 'default';
-            if (sel && sel !== 'default') {
-                // convert id to camel-case class file name - starts by splitting up words
-                const moduleName = sel.split(/[^a-zA-Z0-9]+/).map(
-                    // lowercase first word
-                    (part, i) => i === 0 ? part.toLowerCase() : 
+            const sel = (typeSelect && typeSelect.value) ? typeSelect.value : 'Split Koch';
+            // convert id to camel-case class file name - starts by splitting up words
+            const moduleName = sel.split(/[^a-zA-Z0-9]+/).map(
+                // lowercase first word
+                (part, i) => i === 0 ? part.toLowerCase() :
                     // uppercase the start of each subsequent word
                     (part.charAt(0).toUpperCase() + part.slice(1))
-                ).join('');
-                try {
-                    const mod = await import(`./${moduleName}.js`);
-                    if (mod && (typeof mod.default === 'function')) {
-                        Klass = mod.default;
-                    }
-                } catch (e) {
-                    console.warn('Could not import module for type', sel, e);
-                    Klass = Fractal;
+            ).join('');
+            try {
+                const mod = await import(/* @vite-ignore */`./${moduleName}.js`);
+                if (mod && (typeof mod.default === 'function')) {
+                    Klass = mod.default;
                 }
+            } catch (e) {
+                console.warn('Could not import module for type', sel, e);
+                Klass = Fractal;
             }
         } catch (e) {
             console.warn('Error resolving fractal class, falling back to Fractal', e);
