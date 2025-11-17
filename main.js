@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import Fractal from './fractal.js';
-import SplitKoch from './splitKoch.js';
+// other fractal classes will be dynamically imported
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -113,7 +113,7 @@ window.addEventListener('DOMContentLoaded', () => {
     })();
 
     if (generateBtn) generateBtn.addEventListener('click', async () => {
-        // determine which class to instantiate based on selection
+        // determine which class to instantiate based on selection, defaults to Fractal class
         let Klass = Fractal;
         try {
             const sel = (typeSelect && typeSelect.value) ? typeSelect.value : 'default';
