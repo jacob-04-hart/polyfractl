@@ -43,11 +43,20 @@
         },
         {
             "id": "sierpinski-tetrahedron",
-            "name": "Sierpinski tetrahedron",
+            "name": "Sierpinski Tetrahedron",
             "description": "A 3d fractal based on the Sierpinski triangle.",
             "parameters": {
                 "maxDepth": 5,
                 "colors": ["color1", "color2", "color3", "color4"]
+            }
+        },
+        {
+            "id": "jerusalem-cube",
+            "name": "Jerusalem Cube",
+            "description": "A fractal similar to the Menger Sponge.",
+            "parameters": {
+                "maxDepth": 4,
+                "colors": ["color1", "color2", "color3", "color4", "color5", "color6"]
             }
         }
     ]
