@@ -51,6 +51,15 @@
             }
         },
         {
+            "id": "sierpinski-octahedron",
+            "name": "Sierpinski Octahedron",
+            "description": "A 3d fractal built with octahedrons.",
+            "parameters": {
+                "maxDepth": 5,
+                "colors": ["color1", "color2", "color3", "color4"]
+            }
+        },
+        {
             "id": "inverse-sierpinski-tetrahedron",
             "name": "Inverse Sierpinski Tetrahedron",
             "description": "An inverse of the Sierpinski Tetrahedron",

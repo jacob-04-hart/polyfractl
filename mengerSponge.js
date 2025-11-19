@@ -1,6 +1,6 @@
 import Fractal from './fractal.js';
 
-export default class JerusalemCube extends Fractal {
+export default class MengerSponge extends Fractal {
     constructor(scene, options = {}, properties = {}) {
         super(scene, options, properties);
     }

@@ -31,6 +31,7 @@ export default class SierpinskiTetrahedron extends Fractal {
     }
 
     addShape(a,b,c,d){
+        
         const ab = this.split(a,b,.5);
         const ac = this.split(a,c,.5);
         const ad = this.split(a,d,.5);
