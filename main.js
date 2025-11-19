@@ -116,8 +116,24 @@ window.addEventListener('DOMContentLoaded', () => {
     if (generateBtn) generateBtn.addEventListener('click', async () => {
         // determine which class to instantiate based on selection, defaults to Fractal class
         let Klass = Fractal;
+        let properties = {};
         try {
-            const sel = (typeSelect && typeSelect.value) ? typeSelect.value : 'Split Koch';
+            const sel = (typeSelect && typeSelect.value) ? typeSelect.value : 'split-koch';
+            const res = await fetch('/fractal-types.json', { cache: 'no-cache' });
+            // response is good, set parameters
+            if (res.ok) {
+                const json = await res.json();
+                const list = Array.isArray(json.fractals) ? json.fractals : [];
+                for (const t of list) {
+                    if ((t.id === sel || t.name === sel) && t.parameters) {
+                        properties = t.parameters;
+                        break;
+                    }
+                }
+                properties.colors = colors;
+            } else { 
+                properties = { "maxDepth": maxDepth, "colors": colors, "thickness": thickness, "splitWidth": splitWidth};
+            }
             // convert id to camel-case class file name - starts by splitting up words
             const moduleName = sel.split(/[^a-zA-Z0-9]+/).map(
                 // lowercase first word
@@ -140,16 +156,11 @@ window.addEventListener('DOMContentLoaded', () => {
         }
 
         // create a fractal instance and generate fractal
-        const f = new Klass(scene, {});
+        const f = new Klass(scene, {}, properties);
 
         // these will be not all be used
         // we should load these from the json
-        f.setProperties({ "maxDepth": maxDepth,
-                          "colors": colors,
-                          "thickness": thickness,
-                          "splitWidth": splitWidth,
-
-         });
+        // f.setProperties(properties);
 
         // progress for generation and a bail button
         const progressEl = document.getElementById('progress');

@@ -5,7 +5,7 @@ export default class Fractal {
     constructor(scene, { doubleSided = true, materialOptions = {} } = {}, properties = {}) {
         if (!scene) throw new Error('Fractal requires a THREE.Scene instance');
         this.scene = scene;
-        this.properties = { };
+        this.properties = properties;
 
         this._positions = []; // flat [x,y,z, x,y,z, ...]
         this._colors = [];    // flat [r,g,b, ...]
