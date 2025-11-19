@@ -64,8 +64,9 @@
             "name": "Menger Sponge",
             "description": "A well-known 3d fractal with a cube-based structure.",
             "parameters": {
-                "maxDepth": 4,
-                "colors": ["color1", "color2", "color3", "color4", "color5", "color6"]
+                "maxDepth": 3,
+                "colors": ["color1", "color2", "color3", "color4", "color5", "color6"],
+                "pattern": [[[1,1,1], [1,0,1], [1,1,1]],[[1,0,1], [0,0,0], [1,0,1]],[[1,1,1], [1,0,1], [1,1,1]]]
             }
         },
         {

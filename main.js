@@ -143,6 +143,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const f = new Klass(scene, {});
 
         // these will be not all be used
+        // we should load these from the json
         f.setProperties({ "maxDepth": maxDepth,
                           "colors": colors,
                           "thickness": thickness,
@@ -176,7 +177,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
                 f.generate();
 
-			clearScene();
+			    clearScene();
+                // cancel doesn't do anything yet
                 if (f.cancelRequested() && progressMsg) progressMsg.textContent = 'Generation cancelled.';
 
                 const mesh = f.buildTrianglesMesh();

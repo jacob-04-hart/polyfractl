@@ -3,27 +3,25 @@ import Fractal from './fractal.js';
 export default class JerusalemCube extends Fractal {
     constructor(scene, options = {}, properties = {}) {
         super(scene, options, properties);
-        this.scale = (2**(.5))-1;
-        this.scale2 = (this.scale**2);
-
     }
 
     generate() {
         const cubeVert = [-.5,.5,-.5];
+        // we have to do this because we don't load the params from json yet
+        this.properties.pattern = [[[1,1,1], [1,0,1], [1,1,1]],[[1,0,1], [0,0,0], [1,0,1]],[[1,1,1], [1,0,1], [1,1,1]]];
         this.drawFractal(cubeVert,1,0);
     }
 
     drawFractal(a, length, depth) {
-        if (depth < this.properties.maxDepth) {
+        const third = length/3;
+        if(depth < this.properties.maxDepth){
             for(let layer = 0; layer < 3; layer++){
+                let z = a[2] + (third * layer);
                 for(let row = 0; row < 3; row++){
+                    let x = a[0] + (third * row);
                     for(let col = 0; col < 3; col++){
-                        let count = (layer == 1? 1 : 0) + (row == 1? 1 : 0) + (col == 1? 1 : 0);
-                        if ((layer != 1) && (row != 1) && (col != 1)) {
-                            this.drawFractal([ a[0] + ((this.scale + this.scale2) * length * row / 2), a[1] - ((this.scale + this.scale2) * length * col / 2), a[2] + ((this.scale + this.scale2) * length * layer / 2) ], this.scale * length, depth + 1);
-                        } else if (count == 1) {
-                            this.drawFractal([ a[0] + (this.scale * length * row), a[1] - (this.scale * length * col), a[2] + (this.scale * length * layer) ], this.scale2 * length, depth + 2);
-                        }
+                        let y = a[1] - (third * col);
+                        if(this.properties.pattern[layer][row][col] == 1) { this.drawFractal([x,y,z],third,depth+1); }
                     }
                 }
             }
@@ -43,10 +41,8 @@ export default class JerusalemCube extends Fractal {
             this.addShape(b,f,d,h,this.properties.colors[4]);
             this.addShape(e,a,g,c,this.properties.colors[5]);
         }
-
     }
 
-    // will add a square face
     addShape(a,b,c,d,color) {
         this.addFace(a,b,c,color);
         this.addFace(d,c,b,color);
