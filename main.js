@@ -210,10 +210,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function animate() {
     // rotate all added objects
-    // for (const obj of addedObjects) {
-    //     obj.rotation.x += 0.01;
-    //     obj.rotation.y += 0.01;
-    // }
+    for (const obj of addedObjects) {
+        obj.rotation.x += 0.01;
+        obj.rotation.y += 0.01;
+    }
 
     renderer.render(scene, camera);
 }
