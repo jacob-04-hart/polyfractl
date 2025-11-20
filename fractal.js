@@ -172,5 +172,17 @@ export default class Fractal {
             this.addFace(c, a, top, f4);
         } catch (e) { }
     }
+    addPoint(a, size, color) {
+
+        try {
+            let sphereMesh = new THREE.SphereGeometry(size, 8, 8);
+            let sphereMaterial = new THREE.MeshBasicMaterial({ color: color });
+            let sphere = new THREE.Mesh(sphereMesh, sphereMaterial);
+            sphere.position.set(a[0], a[1], a[2]);
+            this.scene.add(sphere);
+            // this.scene.add(new THREE.Sphere(a,size))
+            
+        } catch (e) { }
+    }
 
 }
