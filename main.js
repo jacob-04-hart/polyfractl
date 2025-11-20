@@ -51,7 +51,10 @@ let colors = [
     new THREE.Color(1.0, 0.5, 0.0), // orange
     new THREE.Color(1.0, 1.0, 0.0), // yellow
     new THREE.Color(0.5, 0.0, 0.5), // purple
-    new THREE.Color(0.2, 0.3, 0.3), // learnOpenGL green]
+    new THREE.Color(0.2, 0.3, 0.3), // learnOpenGL green
+    new THREE.Color(0.0, 0.5, 0.5), // cyan
+    new THREE.Color(0.07, 0.21, 0.14), // phthalo green
+    new THREE.Color(.55, 0, .55) // magenta
 ];
 let thickness = 1;
 let splitWidth = .45;

@@ -123,6 +123,15 @@
                 "maxDepth": 4,
                 "colors": [1, 2, 3, 4]
             }
+        },
+        {
+            "id": "sierpinski-dodecahedron",
+            "name": "Sierpinski Dodecahedron",
+            "description": "A 3d fractal based on the sierpinski pentagon.",
+            "parameters": {
+                "maxDepth": 3,
+                "colors": [1, 2, 3, 4, 5, 6]
+            }
         }
     ]
 }
