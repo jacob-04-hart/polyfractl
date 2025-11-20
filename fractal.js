@@ -38,6 +38,7 @@ export default class Fractal {
         for (let i = 0; i < 3; i++) this._colors.push(col.r, col.g, col.b);
 
         // update generation counter and call progress callback occasionally
+        // we need to fix this
         this._triangleCount += 1;
         if (typeof this.progressCallback === 'function' && (this._triangleCount % 50 === 0)) {
             try { this.progressCallback(this._triangleCount); } catch (e) { /* ignore */ }
