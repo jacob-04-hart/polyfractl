@@ -103,7 +103,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const list = Array.isArray(json.fractals) ? json.fractals : [];
             for (const t of list) {
                 // skip adding split koch, that is added in html
-                if (!t || !t.id || t.id == "split-koch") continue;
+                if (!t || !t.id || t.id == "kaden-hart") continue;
                 // add each fractal to drop-down
                 if (typeSelect.querySelector(`option[value="${t.id}"]`)) continue;
                 const opt = document.createElement('option');
@@ -121,7 +121,7 @@ window.addEventListener('DOMContentLoaded', () => {
         let Klass = Fractal;
         let properties = {};
         try {
-            const sel = (typeSelect && typeSelect.value) ? typeSelect.value : 'split-koch';
+            const sel = (typeSelect && typeSelect.value) ? typeSelect.value : 'kaden-hart';
             const res = await fetch('/fractal-types.json', { cache: 'no-cache' });
             // response is good, set parameters
             if (res.ok) {
