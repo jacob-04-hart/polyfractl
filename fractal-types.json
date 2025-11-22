@@ -1,20 +1,6 @@
 {
-<<<<<<< HEAD
     "fractals": {
         "split-koch": {
-=======
-    "fractals": [
-        {
-            "id": "kaden-hart",
-            "name": "Kaden Hart",
-            "description": "test",
-            "parameters": {
-                "maxDepth": 5,
-                "colors": [1, 2, 3, 4]
-            }
-        },
-        {
->>>>>>> 2e667ae1a134e32b43289ab96178664f1b4c5301
             "id": "split-koch",
             "name": "Split Koch",
             "description": "A fractal based on the Koch curve with splits. Used as the default example.",
@@ -43,12 +29,7 @@
                 "colors": [1, 2, 3, 4]
             }
         },
-<<<<<<< HEAD
         "inverse-sierpinski-tetrahedron": {
-=======
-        
-        {
->>>>>>> 2e667ae1a134e32b43289ab96178664f1b4c5301
             "id": "inverse-sierpinski-tetrahedron",
             "name": "Inverse Sierpinski Tetrahedron",
             "description": "An inverse of the Sierpinski Tetrahedron",

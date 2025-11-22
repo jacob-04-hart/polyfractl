@@ -201,11 +201,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const list = Object.keys(json.fractals);
             for (const t of list) {
                 // skip adding split koch, that is added in html
-<<<<<<< HEAD
                 if (!json.fractals[t] || !json.fractals[t].id || json.fractals[t].id == "split-koch") continue;
-=======
-                if (!t || !t.id || t.id == "kaden-hart") continue;
->>>>>>> 2e667ae1a134e32b43289ab96178664f1b4c5301
                 // add each fractal to drop-down
                 if (typeSelect.querySelector(`option[value="${json.fractals[t].id}"]`)) continue;
                 const opt = document.createElement('option');
