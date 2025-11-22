@@ -38,6 +38,7 @@ export default class Fractal {
         for (let i = 0; i < 3; i++) this._colors.push(col.r, col.g, col.b);
 
         // update generation counter and call progress callback occasionally
+        // we need to fix this
         this._triangleCount += 1;
         if (typeof this.progressCallback === 'function' && (this._triangleCount % 50 === 0)) {
             try { this.progressCallback(this._triangleCount); } catch (e) { /* ignore */ }
@@ -170,6 +171,18 @@ export default class Fractal {
             this.addFace(a, b, top, f2);
             this.addFace(b, c, top, f3);
             this.addFace(c, a, top, f4);
+        } catch (e) { }
+    }
+    addPoint(a, size, color) {
+
+        try {
+            let sphereMesh = new THREE.SphereGeometry(size, 8, 8);
+            let sphereMaterial = new THREE.MeshBasicMaterial({ color: color });
+            let sphere = new THREE.Mesh(sphereMesh, sphereMaterial);
+            sphere.position.set(a[0], a[1], a[2]);
+            this.scene.add(sphere);
+            // this.scene.add(new THREE.Sphere(a,size))
+            
         } catch (e) { }
     }
 
