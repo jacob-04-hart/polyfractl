@@ -116,7 +116,7 @@ function clearScene() {
     }
 }
 
-function addSlider(name, min, max, initial, typeSelect) {
+function addSlider(name, min, max, initial, step, typeSelect) {
     try {
         // container holds label, slider and value
         const sliderContainer = document.createElement('div');
@@ -134,7 +134,7 @@ function addSlider(name, min, max, initial, typeSelect) {
         slider.id = 'slider-' + name;
         slider.min = String(min);
         slider.max = String(max);
-        slider.step = '1';
+        slider.step = String(step);
         slider.value = String(initial);
         slider.style.flex = '1';
 
@@ -154,6 +154,33 @@ function addSlider(name, min, max, initial, typeSelect) {
         console.warn('Could not create slider control', e);
         return null;
     }
+}
+
+function updateFractalTypeParameter(properties, sel, paramName, value) {
+    const key = 'fractal-types';
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        if (!data || !data.fractals) return false;
+
+        const ids = Object.keys(data.fractals);
+        for (const id of ids) {
+            const item = data.fractals[id];
+            if (!item) continue;
+            if (item.id === sel || item.name === sel) {
+                if (!item.parameters || typeof item.parameters !== 'object') item.parameters = {};
+                item.parameters[paramName] = value;
+                // keep the runtime properties object in sync if provided
+                if (properties && typeof properties === 'object') properties[paramName] = value;
+                localStorage.setItem(key, JSON.stringify(data));
+                return true;
+            }
+        }
+    } catch (e) {
+        console.warn('Could not update fractal-types in localStorage', e);
+    }
+    return false;
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -179,18 +206,27 @@ window.addEventListener('DOMContentLoaded', () => {
         if (!entry || !entry.parameters) return;
         // parameters is the parameters of the specific fractal
         const parameters = entry.parameters;
+        // remove any existing maxDepth slider
+        try {
+            const existing = document.getElementById('slider-maxDepth');
+            if (existing && existing.parentElement) existing.parentElement.remove();
+        } catch (e) { /* ignore */ }
+        // remove any existing splitWidth slider
+        try {
+            const existing = document.getElementById('slider-splitWidth');
+            if (existing && existing.parentElement) existing.parentElement.remove();
+        } catch (e) { /* ignore */ }
+        // remove any existing splitWidth slider
+        try {
+            const existing = document.getElementById('slider-thickness');
+            if (existing && existing.parentElement) existing.parentElement.remove();
+        } catch (e) { /* ignore */ }
         for (const parameter in parameters) {
-            // console.log(parameter);
+        // console.log(parameter);
             switch (parameter) {
                 case "maxDepth":
                     {
-                        // remove any existing maxDepth slider
-                        try {
-                            const existing = document.getElementById('slider-maxDepth');
-                            if (existing && existing.parentElement) existing.parentElement.remove();
-                        } catch (e) { /* ignore */ }
-
-                        const sliderContainer = addSlider("maxDepth", 0, 10, parameters.maxDepth, typeSelect);
+                        const sliderContainer = addSlider("maxDepth", 0, 12, parameters.maxDepth, 1, typeSelect);
                         if (!sliderContainer) break;
                         // cast as input elements
                         const slider = /** @type {HTMLInputElement|null} */ (sliderContainer.querySelector('input[type="range"]'));
@@ -198,37 +234,40 @@ window.addEventListener('DOMContentLoaded', () => {
                         if (slider) {
                             slider.addEventListener('input', () => {
                                 if (valueSpan) valueSpan.textContent = String(slider.value);
-                                try {
-                                    const key = 'fractal-types';
-                                    const raw = localStorage.getItem(key);
-
-                                    if (raw) {
-                                        const data = JSON.parse(raw);
-                                        const ids = Object.keys(data.fractals || {});
-                                        for (const id of ids) {
-                                            const item = data.fractals[id];
-                                            if (!item) continue;
-                                            // change maxDepth for selected fractal
-                                            if (item.id === sel || item.name === sel) {
-                                                if (!item.parameters) item.parameters = [];
-                                                item.parameters.maxDepth = Number(slider.value);
-                                                break;
-                                            }
-                                        }
-                                        localStorage.setItem(key, JSON.stringify(data));
-                                    }
-                                } catch (e) {
-                                    console.warn('could not update maxDepth in localStorage', e);
-                                }
+                                updateFractalTypeParameter(parameters, sel, 'maxDepth', Number(slider.value));
                             });
                         }
                     }
                     break;
                 case "splitWidth":
-
+                    {
+                        const sliderContainer = addSlider("splitWidth", 0, .5, parameters.splitWidth, .01, typeSelect);
+                        if (!sliderContainer) break;
+                        // cast as input elements
+                        const slider = /** @type {HTMLInputElement|null} */ (sliderContainer.querySelector('input[type="range"]'));
+                        const valueSpan = /** @type {HTMLElement|null} */ (sliderContainer.querySelector('span'));
+                        if (slider) {
+                            slider.addEventListener('input', () => {
+                                if (valueSpan) valueSpan.textContent = String(slider.value);
+                                updateFractalTypeParameter(parameters, sel, 'splitWidth', Number(slider.value));
+                            });
+                        }
+                    }
                     break;
                 case "thickness":
-
+                    {
+                        const sliderContainer = addSlider("thickness", 0, 3, parameters.thickness, .01, typeSelect);
+                        if (!sliderContainer) break;
+                        // cast as input elements
+                        const slider = /** @type {HTMLInputElement|null} */ (sliderContainer.querySelector('input[type="range"]'));
+                        const valueSpan = /** @type {HTMLElement|null} */ (sliderContainer.querySelector('span'));
+                        if (slider) {
+                            slider.addEventListener('input', () => {
+                                if (valueSpan) valueSpan.textContent = String(slider.value);
+                                updateFractalTypeParameter(parameters, sel, 'thickness', Number(slider.value));
+                            });
+                        }
+                    }
                     break;
                 case "colors":
 
