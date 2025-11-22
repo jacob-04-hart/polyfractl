@@ -59,6 +59,41 @@ let colors = [
 let thickness = 1;
 let splitWidth = .45;
 
+// load fractal-types.json into local storage
+// if already in local storage, use it
+async function getFractalTypes() {
+    const key = 'fractal-types';
+    try {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+            try {
+                const parsed = JSON.parse(raw);
+                return parsed;
+            } catch (e) {
+                console.warn('ivalid JSON in localStorage for fractal-types, refetching', e);
+                localStorage.removeItem(key);
+            }
+        }
+    } catch (e) {
+        console.warn("couldn't read fractal-types from localStorage", e)
+    }
+
+    try {
+        const res = await fetch('/fractal-types.json', { cache: 'no-cache' });
+        if (!res.ok) return null;
+        const json = await res.json();
+        try {
+            localStorage.setItem(key, JSON.stringify(json));
+        } catch (e) {
+            console.warn('could not write fractal-types to localStorage', e);
+        }
+        return json;
+    } catch (e) {
+        console.warn('Failed to fetch fractal-types.json', e);
+        return null;
+    }
+}
+
 // handles multiple objects if we decided this
 function addObjectToScene(obj) {
     scene.add(obj);
@@ -135,58 +170,76 @@ window.addEventListener('DOMContentLoaded', () => {
         const sel = (typeSelect && typeSelect.value) ? typeSelect.value : 'split-koch';
         // console.log(sel);
         const res = await fetch('/fractal-types.json', { cache: 'no-cache' });
-        if (res.ok) {
-            const json = await res.json();
-            const entries = Object.values(json.fractals || {});
-            // entry is the specific fractal
-            const entry = entries.find(e => e && (e.id === sel || e.name === sel));
-            if (!entry || !entry.parameters) return;
-            // parameters is the parameters of the specific fractal
-            const parameters = entry.parameters;
-            for (const parameter in parameters) {
-                // console.log(parameter);
-                switch (parameter){
-                    case "maxDepth":
-                        {
-                            // remove any existing maxDepth slider
-                            try {
-                                const existing = document.getElementById('slider-maxDepth');
-                                if (existing && existing.parentElement) existing.parentElement.remove();
-                            } catch (e) { /* ignore */ }
 
-                            const sliderContainer = addSlider("maxDepth", 0, 10, parameters.maxDepth, typeSelect);
-                            if (!sliderContainer) break;
-                            // cast as input elements
-                            const slider = /** @type {HTMLInputElement|null} */ (sliderContainer.querySelector('input[type="range"]'));
-                            const valueSpan = /** @type {HTMLElement|null} */ (sliderContainer.querySelector('span'));
-                            if (slider) {
-                                slider.addEventListener('input', () => {
-                                    if (valueSpan) valueSpan.textContent = String(slider.value);
-                                    
-                                    // change the actual max depth in the json here
+        const json = await getFractalTypes();
+        if (!json) return;
+        const entries = Object.values(json.fractals || {});
+        // entry is the specific fractal
+        const entry = entries.find(e => e && (e.id === sel || e.name === sel));
+        if (!entry || !entry.parameters) return;
+        // parameters is the parameters of the specific fractal
+        const parameters = entry.parameters;
+        for (const parameter in parameters) {
+            // console.log(parameter);
+            switch (parameter) {
+                case "maxDepth":
+                    {
+                        // remove any existing maxDepth slider
+                        try {
+                            const existing = document.getElementById('slider-maxDepth');
+                            if (existing && existing.parentElement) existing.parentElement.remove();
+                        } catch (e) { /* ignore */ }
 
-                                });
-                            }
+                        const sliderContainer = addSlider("maxDepth", 0, 10, parameters.maxDepth, typeSelect);
+                        if (!sliderContainer) break;
+                        // cast as input elements
+                        const slider = /** @type {HTMLInputElement|null} */ (sliderContainer.querySelector('input[type="range"]'));
+                        const valueSpan = /** @type {HTMLElement|null} */ (sliderContainer.querySelector('span'));
+                        if (slider) {
+                            slider.addEventListener('input', () => {
+                                if (valueSpan) valueSpan.textContent = String(slider.value);
+                                try {
+                                    const key = 'fractal-types';
+                                    const raw = localStorage.getItem(key);
+
+                                    if (raw) {
+                                        const data = JSON.parse(raw);
+                                        const ids = Object.keys(data.fractals || {});
+                                        for (const id of ids) {
+                                            const item = data.fractals[id];
+                                            if (!item) continue;
+                                            // change maxDepth for selected fractal
+                                            if (item.id === sel || item.name === sel) {
+                                                if (!item.parameters) item.parameters = [];
+                                                item.parameters.maxDepth = Number(slider.value);
+                                                break;
+                                            }
+                                        }
+                                        localStorage.setItem(key, JSON.stringify(data));
+                                    }
+                                } catch (e) {
+                                    console.warn('could not update maxDepth in localStorage', e);
+                                }
+                            });
                         }
-                        break;
-                    case "splitWidth":
+                    }
+                    break;
+                case "splitWidth":
 
-                        break;
-                    case "thickness":
+                    break;
+                case "thickness":
 
-                        break;
-                    case "colors":
+                    break;
+                case "colors":
 
-                        break;
-                    case "pattern":
+                    break;
+                case "pattern":
 
-                        break;
-                    default:
+                    break;
+                default:
 
-                }
             }
         }
-
     });
 
     // populate the type select from fractal-types.json
@@ -194,10 +247,8 @@ window.addEventListener('DOMContentLoaded', () => {
         if (!typeSelect) return;
         try {
             // get request to fetch json
-            const res = await fetch('/fractal-types.json', { cache: 'no-cache' });
-            // response is good
-            if (!res.ok) return;
-            const json = await res.json();
+            const json = await getFractalTypes();
+            if (!json) return;
             const list = Object.keys(json.fractals);
             for (const t of list) {
                 // skip adding split koch, that is added in html
@@ -211,7 +262,7 @@ window.addEventListener('DOMContentLoaded', () => {
             }
             try { typeSelect.dispatchEvent(new Event('change')); } catch (e) { /* ignore */ }
         } catch (e) {
-            console.warn('Failed to load fractal-types.json', e);
+            console.warn('Failed to load fractal-types', e);
         }
     })();
 
@@ -221,10 +272,9 @@ window.addEventListener('DOMContentLoaded', () => {
         let properties = {};
         try {
             const sel = (typeSelect && typeSelect.value) ? typeSelect.value : 'kaden-hart';
-            const res = await fetch('/fractal-types.json', { cache: 'no-cache' });
+            const json = await getFractalTypes();
             // response is good, set parameters
-            if (res.ok) {
-                const json = await res.json();
+            if (json) {
                 const list = Object.keys(json.fractals);
                 for (const t of list) {
                     if ((json.fractals[t].id === sel || json.fractals[t].name === sel) && json.fractals[t].parameters) {
