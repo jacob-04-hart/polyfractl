@@ -81,6 +81,46 @@ function clearScene() {
     }
 }
 
+function addSlider(name, min, max, initial, typeSelect) {
+    try {
+        // container holds label, slider and value
+        const sliderContainer = document.createElement('div');
+        sliderContainer.style.display = 'flex';
+        sliderContainer.style.alignItems = 'center';
+        sliderContainer.style.gap = '8px';
+        sliderContainer.style.marginTop = '8px';
+
+        const label = document.createElement('label');
+        label.htmlFor = 'slider-' + name;
+        label.textContent = name;
+
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.id = 'slider-' + name;
+        slider.min = String(min);
+        slider.max = String(max);
+        slider.step = '1';
+        slider.value = String(initial);
+        slider.style.flex = '1';
+
+        const valueSpan = document.createElement('span');
+        valueSpan.id = 'slider-' + name + 'value';
+        valueSpan.textContent = String(slider.value);
+
+        sliderContainer.appendChild(label);
+        sliderContainer.appendChild(slider);
+        sliderContainer.appendChild(valueSpan);
+
+        // insert the slider container after the select's parent block if possible
+        const insertAfter = typeSelect.parentElement || typeSelect;
+        insertAfter.insertAdjacentElement('afterend', sliderContainer);
+        return sliderContainer;
+    } catch (e) {
+        console.warn('Could not create slider control', e);
+        return null;
+    }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     const clearBtn = document.getElementById('clear-scene');
     const generateBtn = document.getElementById('generate');
@@ -89,6 +129,64 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (clearBtn) clearBtn.addEventListener('click', () => {
         clearScene();
+    });
+
+    if (typeSelect) typeSelect.addEventListener('change', async () => {
+        const sel = (typeSelect && typeSelect.value) ? typeSelect.value : 'split-koch';
+        // console.log(sel);
+        const res = await fetch('/fractal-types.json', { cache: 'no-cache' });
+        if (res.ok) {
+            const json = await res.json();
+            const entries = Object.values(json.fractals || {});
+            // entry is the specific fractal
+            const entry = entries.find(e => e && (e.id === sel || e.name === sel));
+            if (!entry || !entry.parameters) return;
+            // parameters is the parameters of the specific fractal
+            const parameters = entry.parameters;
+            for (const parameter in parameters) {
+                // console.log(parameter);
+                switch (parameter){
+                    case "maxDepth":
+                        {
+                            // remove any existing maxDepth slider
+                            try {
+                                const existing = document.getElementById('slider-maxDepth');
+                                if (existing && existing.parentElement) existing.parentElement.remove();
+                            } catch (e) { /* ignore */ }
+
+                            const sliderContainer = addSlider("maxDepth", 0, 10, parameters.maxDepth, typeSelect);
+                            if (!sliderContainer) break;
+                            // cast as input elements
+                            const slider = /** @type {HTMLInputElement|null} */ (sliderContainer.querySelector('input[type="range"]'));
+                            const valueSpan = /** @type {HTMLElement|null} */ (sliderContainer.querySelector('span'));
+                            if (slider) {
+                                slider.addEventListener('input', () => {
+                                    if (valueSpan) valueSpan.textContent = String(slider.value);
+                                    
+                                    // change the actual max depth in the json here
+
+                                });
+                            }
+                        }
+                        break;
+                    case "splitWidth":
+
+                        break;
+                    case "thickness":
+
+                        break;
+                    case "colors":
+
+                        break;
+                    case "pattern":
+
+                        break;
+                    default:
+
+                }
+            }
+        }
+
     });
 
     // populate the type select from fractal-types.json
@@ -100,17 +198,18 @@ window.addEventListener('DOMContentLoaded', () => {
             // response is good
             if (!res.ok) return;
             const json = await res.json();
-            const list = Array.isArray(json.fractals) ? json.fractals : [];
+            const list = Object.keys(json.fractals);
             for (const t of list) {
                 // skip adding split koch, that is added in html
-                if (!t || !t.id || t.id == "split-koch") continue;
+                if (!json.fractals[t] || !json.fractals[t].id || json.fractals[t].id == "split-koch") continue;
                 // add each fractal to drop-down
-                if (typeSelect.querySelector(`option[value="${t.id}"]`)) continue;
+                if (typeSelect.querySelector(`option[value="${json.fractals[t].id}"]`)) continue;
                 const opt = document.createElement('option');
-                opt.value = t.id;
-                opt.textContent = t.name || t.id;
+                opt.value = json.fractals[t].id;
+                opt.textContent = json.fractals[t].name || json.fractals[t].id;
                 typeSelect.appendChild(opt);
             }
+            try { typeSelect.dispatchEvent(new Event('change')); } catch (e) { /* ignore */ }
         } catch (e) {
             console.warn('Failed to load fractal-types.json', e);
         }
@@ -126,10 +225,10 @@ window.addEventListener('DOMContentLoaded', () => {
             // response is good, set parameters
             if (res.ok) {
                 const json = await res.json();
-                const list = Array.isArray(json.fractals) ? json.fractals : [];
+                const list = Object.keys(json.fractals);
                 for (const t of list) {
-                    if ((t.id === sel || t.name === sel) && t.parameters) {
-                        properties = t.parameters;
+                    if ((json.fractals[t].id === sel || json.fractals[t].name === sel) && json.fractals[t].parameters) {
+                        properties = json.fractals[t].parameters;
                         break;
                     }
                 }
