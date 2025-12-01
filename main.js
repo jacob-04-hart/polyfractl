@@ -118,16 +118,23 @@ function clearScene() {
 
 function addSlider(name, min, max, initial, step, typeSelect) {
     try {
-        // container holds label, slider and value
+        // container holds label on top, then a row with slider + value
         const sliderContainer = document.createElement('div');
         sliderContainer.style.display = 'flex';
-        sliderContainer.style.alignItems = 'center';
-        sliderContainer.style.gap = '8px';
+        sliderContainer.style.flexDirection = 'column';
+        sliderContainer.style.alignItems = 'stretch';
+        sliderContainer.style.gap = '6px';
         sliderContainer.style.marginTop = '8px';
 
         const label = document.createElement('label');
         label.htmlFor = 'slider-' + name;
         label.textContent = name;
+
+        // row that contains the slider and the numeric value
+        const sliderRow = document.createElement('div');
+        sliderRow.style.display = 'flex';
+        sliderRow.style.alignItems = 'center';
+        sliderRow.style.gap = '8px';
 
         const slider = document.createElement('input');
         slider.type = 'range';
@@ -142,13 +149,20 @@ function addSlider(name, min, max, initial, step, typeSelect) {
         valueSpan.id = 'slider-' + name + 'value';
         valueSpan.textContent = String(slider.value);
 
+        sliderRow.appendChild(slider);
+        sliderRow.appendChild(valueSpan);
+
         sliderContainer.appendChild(label);
-        sliderContainer.appendChild(slider);
-        sliderContainer.appendChild(valueSpan);
+        sliderContainer.appendChild(sliderRow);
 
         // insert the slider container after the select's parent block if possible
-        const insertAfter = typeSelect.parentElement || typeSelect;
-        insertAfter.insertAdjacentElement('afterend', sliderContainer);
+        const insertAfter = (typeSelect && typeSelect.parentElement) ? typeSelect.parentElement : typeSelect;
+        if (insertAfter && typeof insertAfter.insertAdjacentElement === 'function') {
+            insertAfter.insertAdjacentElement('afterend', sliderContainer);
+        } else if (typeSelect && typeSelect.insertAdjacentElement) {
+            typeSelect.insertAdjacentElement('afterend', sliderContainer);
+        }
+
         return sliderContainer;
     } catch (e) {
         console.warn('Could not create slider control', e);
@@ -208,40 +222,25 @@ window.addEventListener('DOMContentLoaded', () => {
         const parameters = entry.parameters;
         // remove any existing maxDepth slider
         try {
-            const existing = document.getElementById('slider-maxDepth');
-            if (existing && existing.parentElement) existing.parentElement.remove();
+            const existing = document.getElementById('slider-Recursive Depth');
+            if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
         } catch (e) { /* ignore */ }
         // remove any existing splitWidth slider
         try {
-            const existing = document.getElementById('slider-splitWidth');
-            if (existing && existing.parentElement) existing.parentElement.remove();
+            const existing = document.getElementById('slider-Split Width');
+            if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
         } catch (e) { /* ignore */ }
         // remove any existing splitWidth slider
         try {
-            const existing = document.getElementById('slider-thickness');
-            if (existing && existing.parentElement) existing.parentElement.remove();
+            const existing = document.getElementById('slider-Thickness');
+            if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
         } catch (e) { /* ignore */ }
         for (const parameter in parameters) {
         // console.log(parameter);
             switch (parameter) {
-                case "maxDepth":
-                    {
-                        const sliderContainer = addSlider("maxDepth", 0, 12, parameters.maxDepth, 1, typeSelect);
-                        if (!sliderContainer) break;
-                        // cast as input elements
-                        const slider = /** @type {HTMLInputElement|null} */ (sliderContainer.querySelector('input[type="range"]'));
-                        const valueSpan = /** @type {HTMLElement|null} */ (sliderContainer.querySelector('span'));
-                        if (slider) {
-                            slider.addEventListener('input', () => {
-                                if (valueSpan) valueSpan.textContent = String(slider.value);
-                                updateFractalTypeParameter(parameters, sel, 'maxDepth', Number(slider.value));
-                            });
-                        }
-                    }
-                    break;
                 case "splitWidth":
                     {
-                        const sliderContainer = addSlider("splitWidth", 0, .5, parameters.splitWidth, .01, typeSelect);
+                        const sliderContainer = addSlider("Split Width", 0, .5, parameters.splitWidth, .01, typeSelect);
                         if (!sliderContainer) break;
                         // cast as input elements
                         const slider = /** @type {HTMLInputElement|null} */ (sliderContainer.querySelector('input[type="range"]'));
@@ -256,7 +255,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     break;
                 case "thickness":
                     {
-                        const sliderContainer = addSlider("thickness", 0, 3, parameters.thickness, .01, typeSelect);
+                        const sliderContainer = addSlider("Thickness", 0, 3, parameters.thickness, .01, typeSelect);
                         if (!sliderContainer) break;
                         // cast as input elements
                         const slider = /** @type {HTMLInputElement|null} */ (sliderContainer.querySelector('input[type="range"]'));
@@ -275,7 +274,22 @@ window.addEventListener('DOMContentLoaded', () => {
                 case "pattern":
 
                     break;
-                default:
+                case "maxDepth":
+                    {
+                        const sliderContainer = addSlider("Recursive Depth", 0, 12, parameters.maxDepth, 1, typeSelect);
+                        if (!sliderContainer) break;
+                        // cast as input elements
+                        const slider = /** @type {HTMLInputElement|null} */ (sliderContainer.querySelector('input[type="range"]'));
+                        const valueSpan = /** @type {HTMLElement|null} */ (sliderContainer.querySelector('span'));
+                        if (slider) {
+                            slider.addEventListener('input', () => {
+                                if (valueSpan) valueSpan.textContent = String(slider.value);
+                                updateFractalTypeParameter(parameters, sel, 'maxDepth', Number(slider.value));
+                            });
+                        }
+                    }
+                    break;
+                default: // maybe we can add toggles for x,y,z auto rotate
 
             }
         }
