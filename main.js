@@ -28,6 +28,11 @@ function resizeRendererToDisplaySize() {
     camera.updateProjectionMatrix();
 }
 
+//scroll wheel zoom
+document.addEventListener("wheel", (event) => {
+    camera.position.z += event.deltaY/500;
+});
+
 // initial size
 resizeRendererToDisplaySize();
 window.addEventListener('resize', resizeRendererToDisplaySize);
@@ -220,17 +225,17 @@ window.addEventListener('DOMContentLoaded', () => {
         if (!entry || !entry.parameters) return;
         // parameters is the parameters of the specific fractal
         const parameters = entry.parameters;
-        // remove any existing maxDepth slider
+        // remove sliders
         try {
             const existing = document.getElementById('slider-Recursive Depth');
             if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
         } catch (e) { /* ignore */ }
-        // remove any existing splitWidth slider
+
         try {
             const existing = document.getElementById('slider-Split Width');
             if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
         } catch (e) { /* ignore */ }
-        // remove any existing splitWidth slider
+
         try {
             const existing = document.getElementById('slider-Thickness');
             if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
