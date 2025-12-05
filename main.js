@@ -29,9 +29,7 @@ function resizeRendererToDisplaySize() {
 }
 
 //scroll wheel zoom
-document.addEventListener("wheel", (event) => {
-    camera.position.z += event.deltaY/500;
-});
+document.addEventListener("wheel", (event) => { camera.position.z += event.deltaY/500; });
 
 // initial size
 resizeRendererToDisplaySize();
