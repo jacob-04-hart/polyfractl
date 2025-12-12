@@ -36,6 +36,7 @@ export default class SierpinskiDodecahedron extends Fractal {
 
         if (depth < this.properties.maxDepth) {
             for (let i = 0; i < 20; i++) {
+                // each new shape is defined by one of the vertices, and "midpoints" from that vertex to the rest of the vertices
                 const newVertices = vertices.map((vertex) => {
                     return this.split(vertices[i],vertex,this.splitValue);
                 });
