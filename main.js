@@ -1,9 +1,11 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'orbit-controls';
 import Fractal from './fractal.js';
 // other fractal classes will be dynamically imported
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const initialTarget = new THREE.Vector3(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer();
 
@@ -28,8 +30,18 @@ function resizeRendererToDisplaySize() {
     camera.updateProjectionMatrix();
 }
 
-//scroll wheel zoom
-document.addEventListener("wheel", (event) => { camera.position.z += event.deltaY/500; });
+// controls for zoom and rotate
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.1;
+controls.maxDistance = 4000;
+controls.target.copy(initialTarget);
+controls.enablePan = false;
+controls.mouseButtons = {
+    LEFT: THREE.MOUSE.ROTATE,
+    MIDDLE: THREE.MOUSE.DOLLY,
+    RIGHT: THREE.MOUSE.ROTATE
+};
 
 // initial size
 resizeRendererToDisplaySize();
@@ -415,11 +427,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function animate() {
     // rotate all added objects
-    for (const obj of addedObjects) {
-        obj.rotation.x += 0.01;
-        obj.rotation.y += 0.01;
-    }
-
+    // for (const obj of addedObjects) {
+    //     obj.rotation.x += 0.01;
+    //     obj.rotation.y += 0.01;
+    // }
+    controls.update();
     renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
