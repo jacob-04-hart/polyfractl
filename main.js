@@ -4,7 +4,9 @@ import Fractal from './fractal.js';
 // other fractal classes will be dynamically imported
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const perspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 1000);
+let camera = /** @type {THREE.PerspectiveCamera | THREE.OrthographicCamera} */ (perspectiveCamera); // active camera
 const initialTarget = new THREE.Vector3(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer();
@@ -26,8 +28,19 @@ function resizeRendererToDisplaySize() {
     const DPR = Math.min(window.devicePixelRatio || 1, 2);
     renderer.setPixelRatio(DPR);
     renderer.setSize(width, height, false);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
+    
+    if (camera instanceof THREE.PerspectiveCamera) {
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+    } else if (camera instanceof THREE.OrthographicCamera) {
+        const aspect = width / height;
+        const frustumSize = 5;
+        camera.left = -frustumSize * aspect / 2;
+        camera.right = frustumSize * aspect / 2;
+        camera.top = frustumSize / 2;
+        camera.bottom = -frustumSize / 2;
+        camera.updateProjectionMatrix();
+    }
 }
 
 // controls for zoom and rotate
@@ -55,7 +68,8 @@ const directional = new THREE.DirectionalLight(0xffffff, 0.8);
 directional.position.set(5, 10, 7.5);
 scene.add(directional);
 
-camera.position.set(0, 0, 3);
+perspectiveCamera.position.set(3, 3, 3);
+orthographicCamera.position.set(3, 3, 3);
 
 // default properties, will not always be used
 let maxDepth = 4;
@@ -185,6 +199,142 @@ function addSlider(name, min, max, initial, step, typeSelect) {
     }
 }
 
+// grid of nxn toggle buttons with layer navigation for 3D patterns
+function addGrid(size, typeSelect, pattern3D, sel) {
+    try {
+    const wrapperContainer = document.createElement('div');
+    wrapperContainer.id = 'grid-pattern';
+    wrapperContainer.style.marginTop = '8px';
+    
+    // Layer navigation controls
+    const layerControls = document.createElement('div');
+    layerControls.style.display = 'flex';
+    layerControls.style.alignItems = 'center';
+    layerControls.style.gap = '8px';
+    layerControls.style.marginBottom = '8px';
+    
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = '◀';
+    prevBtn.style.padding = '5px 10px';
+    prevBtn.style.cursor = 'pointer';
+    
+    const layerLabel = document.createElement('span');
+    layerLabel.style.minWidth = '80px';
+    layerLabel.style.textAlign = 'center';
+    
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = '▶';
+    nextBtn.style.padding = '5px 10px';
+    nextBtn.style.cursor = 'pointer';
+    
+    layerControls.appendChild(prevBtn);
+    layerControls.appendChild(layerLabel);
+    layerControls.appendChild(nextBtn);
+    wrapperContainer.appendChild(layerControls);
+    
+    const gridContainer = document.createElement('div');
+    gridContainer.style.display = 'grid';
+    gridContainer.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+    gridContainer.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+    gridContainer.style.gap = '4px';
+    gridContainer.style.width = '100%';
+    
+    // Create buttons
+    for (let i = 0; i < size * size; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = '';
+        btn.dataset.toggled = 'false';
+        btn.style.backgroundColor = '#ccc';
+        btn.style.border = '1px solid #999';
+        btn.style.padding = '0';
+        btn.style.cursor = 'pointer';
+        btn.style.aspectRatio = '1';
+        btn.style.width = '100%';
+        gridContainer.appendChild(btn);
+    }
+    
+    wrapperContainer.appendChild(gridContainer);
+    
+    // State management
+    let currentLayer = 0;
+    const numLayers = pattern3D ? pattern3D.length : 1;
+    
+    // Update grid based on current layer
+    function updateGrid() {
+        layerLabel.textContent = `Layer ${currentLayer + 1}`;
+        const buttons = gridContainer.querySelectorAll('button');
+        
+        if (pattern3D && pattern3D[currentLayer]) {
+            const layerData = pattern3D[currentLayer];
+            for (let i = 0; i < buttons.length && i < size * size; i++) {
+                const row = Math.floor(i / size);
+                const col = i % size;
+                if (layerData[row] && layerData[row][col] !== undefined) {
+                    const toggled = !!layerData[row][col];
+                    buttons[i].dataset.toggled = toggled ? 'true' : 'false';
+                    buttons[i].style.backgroundColor = toggled ? '#4CAF50' : '#ccc';
+                }
+            }
+        }
+        
+        prevBtn.disabled = currentLayer === 0;
+        nextBtn.disabled = currentLayer === numLayers - 1;
+    }
+    
+    // Layer navigation handlers
+    prevBtn.addEventListener('click', () => {
+        if (currentLayer > 0) {
+            currentLayer--;
+            updateGrid();
+        }
+    });
+    
+    nextBtn.addEventListener('click', () => {
+        if (currentLayer < numLayers - 1) {
+            currentLayer++;
+            updateGrid();
+        }
+    });
+    
+    // Button toggle handlers
+    const buttons = gridContainer.querySelectorAll('button');
+    buttons.forEach((btn, i) => {
+        btn.addEventListener('click', () => {
+            const isToggled = btn.dataset.toggled === 'true';
+            const newToggled = !isToggled;
+            btn.dataset.toggled = newToggled ? 'true' : 'false';
+            btn.style.backgroundColor = newToggled ? '#4CAF50' : '#ccc';
+            
+            // Update the 3D pattern array
+            if (pattern3D && pattern3D[currentLayer]) {
+                const row = Math.floor(i / size);
+                const col = i % size;
+                if (pattern3D[currentLayer][row]) {
+                    pattern3D[currentLayer][row][col] = newToggled ? 1 : 0;
+                    // Update localStorage
+                    updateFractalTypeParameter({pattern: pattern3D}, sel, 'pattern', pattern3D);
+                }
+            }
+        });
+    });
+    
+    // Initial render
+    updateGrid();
+    
+    const insertAfter = (typeSelect && typeSelect.parentElement) ? typeSelect.parentElement : typeSelect;
+    if (insertAfter && typeof insertAfter.insertAdjacentElement === 'function') {
+        insertAfter.insertAdjacentElement('afterend', wrapperContainer);
+    } else if (typeSelect && typeSelect.insertAdjacentElement) {
+        typeSelect.insertAdjacentElement('afterend', wrapperContainer);
+    }
+
+    return wrapperContainer;
+    } catch (e) {
+        console.warn('Could not create grid control', e);
+        return null;
+    }
+}
+
 function updateFractalTypeParameter(properties, sel, paramName, value) {
     const key = 'fractal-types';
     try {
@@ -215,8 +365,54 @@ function updateFractalTypeParameter(properties, sel, paramName, value) {
 window.addEventListener('DOMContentLoaded', () => {
     const clearBtn = document.getElementById('clear-scene');
     const generateBtn = document.getElementById('generate');
+    const resetViewBtn = document.getElementById('reset-view');
     /** @type {HTMLSelectElement|null} */
     const typeSelect = /** @type {HTMLSelectElement|null} */ (document.getElementById('fractal-type-select'));
+    
+    // Add view controls above typeSelect
+    const sidebarUI = document.getElementById('sidebar-ui');
+    if (sidebarUI && typeSelect && typeSelect.parentElement) {
+        // Ortho toggle
+        const orthoContainer = document.createElement('div');
+        orthoContainer.style.display = 'flex';
+        orthoContainer.style.alignItems = 'center';
+        orthoContainer.style.gap = '8px';
+        orthoContainer.style.width = '100%';
+        
+        const orthoCheckbox = document.createElement('input');
+        orthoCheckbox.type = 'checkbox';
+        orthoCheckbox.id = 'ortho-toggle';
+        
+        const orthoLabel = document.createElement('label');
+        orthoLabel.htmlFor = 'ortho-toggle';
+        orthoLabel.textContent = 'Orthographic Projection';
+        orthoLabel.style.cursor = 'pointer';
+        
+        orthoContainer.appendChild(orthoCheckbox);
+        orthoContainer.appendChild(orthoLabel);
+        
+        // Insert before the typeSelect container
+        typeSelect.parentElement.parentNode.insertBefore(orthoContainer, typeSelect.parentElement);
+        
+        // Ortho toggle handler
+        orthoCheckbox.addEventListener('change', () => {
+            const oldCamera = camera;
+            camera = orthoCheckbox.checked ? orthographicCamera : perspectiveCamera;
+            
+            // Copy position and target
+            camera.position.copy(oldCamera.position);
+            controls.object = camera;
+            
+            resizeRendererToDisplaySize();
+        });
+    }
+
+    // Reset view handler - look at cube corner
+    if (resetViewBtn) resetViewBtn.addEventListener('click', () => {
+        camera.position.set(3, 3, 3);
+        controls.target.set(0, 0, 0);
+        controls.update();
+    });
 
     if (clearBtn) clearBtn.addEventListener('click', () => {
         clearScene();
@@ -235,7 +431,11 @@ window.addEventListener('DOMContentLoaded', () => {
         if (!entry || !entry.parameters) return;
         // parameters is the parameters of the specific fractal
         const parameters = entry.parameters;
-        // remove sliders
+        //remove grid and sliders
+        try {
+            const existing = document.getElementById('grid-pattern');
+            if (existing) existing.remove();
+        } catch (e) { /* ignore */ }
         try {
             const existing = document.getElementById('slider-Recursive Depth');
             if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
@@ -287,6 +487,33 @@ window.addEventListener('DOMContentLoaded', () => {
 
                     break;
                 case "pattern":
+                        // add a grid control for pattern
+                        // includes two buttons with arrows for scrolling through pattern layers
+                        // then a grid of buttons for the current layer
+                    {
+                        if (Array.isArray(parameters.pattern) && parameters.pattern.length > 0) {
+                            // Determine grid size from pattern dimensions
+                            // Pattern can be 2D or 3D array
+                            let gridSize;
+                            let pattern3D;
+                            
+                            // Check if it's a 3D array (array of 2D arrays)
+                            if (Array.isArray(parameters.pattern[0]) && Array.isArray(parameters.pattern[0][0])) {
+                                // It's 3D: [layer][row][col]
+                                pattern3D = parameters.pattern;
+                                gridSize = parameters.pattern[0].length; // rows in first layer
+                            } else if (Array.isArray(parameters.pattern[0])) {
+                                // It's 2D: [row][col], convert to 3D with single layer
+                                pattern3D = [parameters.pattern];
+                                gridSize = parameters.pattern.length;
+                            } else {
+                                // Invalid format, skip
+                                break;
+                            }
+                            
+                            const gridContainer = addGrid(gridSize, typeSelect, pattern3D, sel);
+                        }
+                    }
 
                     break;
                 case "maxDepth":
