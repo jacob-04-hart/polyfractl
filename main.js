@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+// @ts-ignore
 import { OrbitControls } from 'orbit-controls';
 import Fractal from './fractal.js';
 // other fractal classes will be dynamically imported
@@ -68,8 +69,26 @@ const directional = new THREE.DirectionalLight(0xffffff, 0.8);
 directional.position.set(5, 10, 7.5);
 scene.add(directional);
 
-perspectiveCamera.position.set(3, 3, 3);
-orthographicCamera.position.set(3, 3, 3);
+const viewAngles = [
+    new THREE.Vector3(0, 0, 3),
+    new THREE.Vector3(3, 0, 0),
+    new THREE.Vector3(0, 3, 0),
+    new THREE.Vector3(-3, 0, 0),
+    new THREE.Vector3(0, -3, 0),
+    new THREE.Vector3(0, 0, -3),
+    new THREE.Vector3(3, 3, 3),
+    new THREE.Vector3(-3, 3, 3),
+    new THREE.Vector3(3, -3, 3),
+    new THREE.Vector3(3, 3, -3),
+    new THREE.Vector3(-3, -3, 3),
+    new THREE.Vector3(3, -3, -3),
+    new THREE.Vector3(-3, 3, -3),
+    new THREE.Vector3(-3, -3, -3),
+];
+let currentViewIndex = 0;
+
+perspectiveCamera.position.copy(viewAngles[currentViewIndex]);
+orthographicCamera.position.copy(viewAngles[currentViewIndex]);
 
 // default properties, will not always be used
 let maxDepth = 4;
@@ -365,7 +384,7 @@ function updateFractalTypeParameter(properties, sel, paramName, value) {
 window.addEventListener('DOMContentLoaded', () => {
     const clearBtn = document.getElementById('clear-scene');
     const generateBtn = document.getElementById('generate');
-    const resetViewBtn = document.getElementById('reset-view');
+    const cycleViewBtn = document.getElementById('cycle-view');
     /** @type {HTMLSelectElement|null} */
     const typeSelect = /** @type {HTMLSelectElement|null} */ (document.getElementById('fractal-type-select'));
     
@@ -407,9 +426,12 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Reset view handler - look at cube corner
-    if (resetViewBtn) resetViewBtn.addEventListener('click', () => {
-        camera.position.set(3, 3, 3);
+    // cycle view handler - look at cube corner
+    if (cycleViewBtn) cycleViewBtn.addEventListener('click', () => {
+        if (viewAngles.length === 0) return;
+        currentViewIndex = (currentViewIndex + 1) % viewAngles.length;
+        perspectiveCamera.position.copy(viewAngles[currentViewIndex]);
+        orthographicCamera.position.copy(viewAngles[currentViewIndex]);
         controls.target.set(0, 0, 0);
         controls.update();
     });
