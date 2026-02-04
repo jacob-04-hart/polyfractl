@@ -50,11 +50,11 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.1;
 controls.maxDistance = 4000;
 controls.target.copy(initialTarget);
-controls.enablePan = false;
+controls.enablePan = true;
 controls.mouseButtons = {
     LEFT: THREE.MOUSE.ROTATE,
     MIDDLE: THREE.MOUSE.DOLLY,
-    RIGHT: THREE.MOUSE.ROTATE
+    RIGHT: THREE.MOUSE.PAN
 };
 
 // initial size
