@@ -12,7 +12,6 @@ const fractalModules = {
     './jerusalemCube.js': () => import('./jerusalemCube.js'),
     './lSponge.js': () => import('./lSponge.js'),
     './mengerSponge.js': () => import('./mengerSponge.js'),
-    './hilbertCube.js': () => import('./hilbertCube.js'),
 };
 
 const scene = new THREE.Scene();
