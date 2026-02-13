@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-// @ts-ignore
-import { OrbitControls } from 'orbit-controls';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import Fractal from './fractal.js';
 // other fractal classes will be dynamically imported
 
