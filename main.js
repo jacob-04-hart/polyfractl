@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import Fractal from './fractal.js';
 // other fractal classes will be dynamically imported
+const fractalModules = import.meta.glob('./*.js');
 
 const scene = new THREE.Scene();
 const perspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -610,9 +611,15 @@ window.addEventListener('DOMContentLoaded', () => {
                     (part.charAt(0).toUpperCase() + part.slice(1))
             ).join('');
             try {
-                const mod = await import(`./${moduleName}.js`);                
-                if (mod && (typeof mod.default === 'function')) {
-                    Klass = mod.default;
+                const modulePath = `./${moduleName}.js`;
+
+                if (fractalModules[modulePath]) {
+                    const mod = await fractalModules[modulePath]();
+                    if (mod && (typeof mod.default === 'function')) {
+                        Klass = mod.default;
+                    }
+                } else {
+                    console.warn('Module not found:', modulePath);
                 }
             } catch (e) {
                 console.warn('Could not import module for type', sel, e);
