@@ -2,17 +2,13 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import Fractal from './fractal.js';
 // other fractal classes will be dynamically imported
-const fractalModules = {
-    './custom2x2x2.js': () => import('./custom2x2x2.js'),
-    './custom3x3x3.js': () => import('./custom3x3x3.js'),
-    './custom4x4x4.js': () => import('./custom4x4x4.js'),
-    './custom5x5x5.js': () => import('./custom5x5x5.js'),
-    './splitKoch.js': () => import('./splitKoch.js'),
-    './inverseSierpinskiTetrahedron.js': () => import('./inverseSierpinskiTetrahedron.js'),
-    './jerusalemCube.js': () => import('./jerusalemCube.js'),
-    './lSponge.js': () => import('./lSponge.js'),
-    './mengerSponge.js': () => import('./mengerSponge.js'),
-};
+const fractalModuleLoaders = import.meta.glob('./fractals/*.js');
+const fractalModules = Object.fromEntries(
+    Object.entries(fractalModuleLoaders).map(([path, loader]) => {
+        const file = path.split('/').pop().replace(/\.js$/, '');
+        return [file, loader];
+    })
+);
 
 const scene = new THREE.Scene();
 const perspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -621,10 +617,15 @@ window.addEventListener('DOMContentLoaded', () => {
                     (part.charAt(0).toUpperCase() + part.slice(1))
             ).join('');
             try {
-                const mod = await import(`./${moduleName}.js`);  
+                const loader = fractalModules[moduleName];
+                if (loader) {
+                    const mod = await loader();
                     if (mod && (typeof mod.default === 'function')) {
                         Klass = mod.default;
                     }
+                } else {
+                    console.warn('Module not found:', moduleName);
+                }
             } catch (e) {
                 console.warn('Could not import module for type', sel, e);
                 Klass = Fractal;
