@@ -1,4 +1,4 @@
-import Fractal from './fractal.js';
+import Fractal from '../fractal.js';
 
 export default class SplitKoch extends Fractal {
     constructor(scene, options = {}, properties = {}) {

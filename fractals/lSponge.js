@@ -1,4 +1,4 @@
-import Fractal from './fractal.js';
+import Fractal from '../fractal.js';
 
 export default class LSponge extends Fractal {
     constructor(scene, options = {}, properties = {}) {

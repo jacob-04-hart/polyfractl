@@ -1,4 +1,4 @@
-import Fractal from './fractal.js';
+import Fractal from '../fractal.js';
 
 export default class custom5x5x5 extends Fractal {
     constructor(scene, options = {}, properties = {}) {
