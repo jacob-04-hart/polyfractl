@@ -2,7 +2,31 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import Fractal from './fractal.js';
 // other fractal classes will be dynamically imported
-const fractalModules = import.meta.glob('./[a-z]*.js', { eager: false });
+const fractalModules = {};
+
+async function loadFractalModules() {
+    try {
+        const res = await fetch('./fractal-types.json', { cache: 'no-cache' });
+        if (!res.ok) return;
+        const json = await res.json();
+        
+        for (const key in json.fractals) {
+            const fractal = json.fractals[key];
+            if (!fractal || !fractal.id) continue;
+            
+            // Convert id to camelCase module name
+            const moduleName = fractal.id.split(/[^a-zA-Z0-9]+/).map(
+                (part, i) => i === 0 ? part.toLowerCase() :
+                    (part.charAt(0).toUpperCase() + part.slice(1))
+            ).join('');
+            
+            const modulePath = `./${moduleName}.js`;
+            fractalModules[modulePath] = () => import(modulePath);
+        }
+    } catch (e) {
+        console.warn('Could not load fractal modules', e);
+    }
+}
 
 const scene = new THREE.Scene();
 const perspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -382,6 +406,8 @@ function updateFractalTypeParameter(properties, sel, paramName, value) {
     }
     return false;
 }
+
+await loadFractalModules();
 
 window.addEventListener('DOMContentLoaded', () => {
     const clearBtn = document.getElementById('clear-scene');
