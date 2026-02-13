@@ -2,31 +2,18 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import Fractal from './fractal.js';
 // other fractal classes will be dynamically imported
-const fractalModules = {};
-
-async function loadFractalModules() {
-    try {
-        const res = await fetch('./fractal-types.json', { cache: 'no-cache' });
-        if (!res.ok) return;
-        const json = await res.json();
-        
-        for (const key in json.fractals) {
-            const fractal = json.fractals[key];
-            if (!fractal || !fractal.id) continue;
-            
-            // Convert id to camelCase module name
-            const moduleName = fractal.id.split(/[^a-zA-Z0-9]+/).map(
-                (part, i) => i === 0 ? part.toLowerCase() :
-                    (part.charAt(0).toUpperCase() + part.slice(1))
-            ).join('');
-            
-            const modulePath = `./${moduleName}.js`;
-            fractalModules[modulePath] = () => import(modulePath);
-        }
-    } catch (e) {
-        console.warn('Could not load fractal modules', e);
-    }
-}
+const fractalModules = {
+    './custom2x2x2.js': () => import('./custom2x2x2.js'),
+    './custom3x3x3.js': () => import('./custom3x3x3.js'),
+    './custom4x4x4.js': () => import('./custom4x4x4.js'),
+    './custom5x5x5.js': () => import('./custom5x5x5.js'),
+    './splitKoch.js': () => import('./splitKoch.js'),
+    './inverseSierpinskiTetrahedron.js': () => import('./inverseSierpinskiTetrahedron.js'),
+    './jerusalemCube.js': () => import('./jerusalemCube.js'),
+    './lSponge.js': () => import('./lSponge.js'),
+    './mengerSponge.js': () => import('./mengerSponge.js'),
+    './hilbertCube.js': () => import('./hilbertCube.js'),
+};
 
 const scene = new THREE.Scene();
 const perspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -406,8 +393,6 @@ function updateFractalTypeParameter(properties, sel, paramName, value) {
     }
     return false;
 }
-
-await loadFractalModules();
 
 window.addEventListener('DOMContentLoaded', () => {
     const clearBtn = document.getElementById('clear-scene');
