@@ -129,8 +129,7 @@ async function getFractalTypes() {
     }
 
     try {
-        const basePath = import.meta.env.BASE_URL || '/';
-        const res = await fetch(`${basePath}fractal-types.json`, { cache: 'no-cache' });
+        const res = await fetch('./fractal-types.json', { cache: 'no-cache' });
         if (!res.ok) return null;
         const json = await res.json();
         try {
@@ -445,9 +444,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (typeSelect) typeSelect.addEventListener('change', async () => {
         const sel = (typeSelect && typeSelect.value) ? typeSelect.value : 'split-koch';
-        const basePath = import.meta.env.BASE_URL || '/';
-        const res = await fetch(`${basePath}fractal-types.json`, { cache: 'no-cache' });
-
+        const res = await fetch('./fractal-types.json', { cache: 'no-cache' });
         const json = await getFractalTypes();
         if (!json) return;
         const entries = Object.values(json.fractals || {});
@@ -614,10 +611,8 @@ window.addEventListener('DOMContentLoaded', () => {
                     (part.charAt(0).toUpperCase() + part.slice(1))
             ).join('');
             try {
-                const basePath = import.meta.env.BASE_URL || '/';
-                const mod = await import(/* @vite-ignore */`${basePath}${moduleName}.js`);
-                if (mod && (typeof mod.default === 'function')) {
-                    Klass = mod.default;
+                const mod = await import(/* @vite-ignore */`./${moduleName}.js`);                if (mod && (typeof mod.default === 'function')) {
+                Klass = mod.default;
                 }
             } catch (e) {
                 console.warn('Could not import module for type', sel, e);
