@@ -610,8 +610,9 @@ window.addEventListener('DOMContentLoaded', () => {
                     (part.charAt(0).toUpperCase() + part.slice(1))
             ).join('');
             try {
-                const mod = await import(/* @vite-ignore */`./${moduleName}.js`);                if (mod && (typeof mod.default === 'function')) {
-                Klass = mod.default;
+                const mod = await import(`./${moduleName}.js`);                
+                if (mod && (typeof mod.default === 'function')) {
+                    Klass = mod.default;
                 }
             } catch (e) {
                 console.warn('Could not import module for type', sel, e);
