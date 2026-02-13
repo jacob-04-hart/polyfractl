@@ -10,7 +10,9 @@ const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 1000)
 let camera = /** @type {THREE.PerspectiveCamera | THREE.OrthographicCamera} */ (perspectiveCamera); // active camera
 const initialTarget = new THREE.Vector3(0, 0, 0);
 
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({
+    //antialias: true 
+});
 
 // containers for grid
 const canvasContainer = document.getElementById('canvas') || document.body;
