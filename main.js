@@ -71,11 +71,12 @@ window.addEventListener('resize', resizeRendererToDisplaySize);
 
 const addedObjects = [];
 
-const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+const ambient = new THREE.AmbientLight(0xffffff, 0.4);
 scene.add(ambient);
-const directional = new THREE.DirectionalLight(0xffffff, 0.8);
-directional.position.set(5, 10, 7.5);
-scene.add(directional);
+const directional = new THREE.DirectionalLight(0xffffff, 1.2);
+directional.position.set(5, 10, 7.5); // Position relative to camera
+camera.add(directional);
+scene.add(camera);
 
 const viewAngles = [
     new THREE.Vector3(0, 0, 3),
@@ -691,6 +692,7 @@ function animate() {
     //     obj.rotation.x += 0.01;
     //     obj.rotation.y += 0.01;
     // }
+    
     controls.update();
     renderer.render(scene, camera);
 }
