@@ -186,4 +186,23 @@ export default class Fractal {
         } catch (e) { }
     }
 
+    rotatePoint(point, pivot) {
+        const [px, py, pz] = pivot;
+
+        const rx = ((this.properties.xRotation || 0) * Math.PI) / 180;
+        const ry = ((this.properties.yRotation || 0) * Math.PI) / 180;
+        const rz = ((this.properties.zRotation || 0) * Math.PI) / 180;
+
+        // Compose independent per-axis quaternions so each axis rotation is
+        // always relative to the world frame, avoiding gimbal lock.
+        const qx = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), rx);
+        const qy = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), ry);
+        const qz = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), rz);
+        const q = qy.multiply(qx).multiply(qz); // YXZ: yaw → pitch → roll
+
+        const v = new THREE.Vector3(point[0] - px, point[1] - py, point[2] - pz);
+        v.applyQuaternion(q);
+
+        return [v.x + px, v.y + py, v.z + pz];
+    }
 }
