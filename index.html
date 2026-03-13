@@ -61,9 +61,24 @@
                 <div class="sidebar-content">
                     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
                         <strong>Controls</strong>
-                        <div id="ui" style="display:flex; gap:8px;">
+                        <div id="ui" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                             <button id="generate">Generate Fractal</button>
-                            <button id="cycle-view">Cycle View</button>
+                            <select id="cycle-view" title="Preset View">
+                                <option value="0">Front</option>
+                                <option value="1">Right</option>
+                                <option value="2">Top</option>
+                                <option value="3">Left</option>
+                                <option value="4">Bottom</option>
+                                <option value="5">Back</option>
+                                <option value="6">Corner (+x+y+z)</option>
+                                <option value="7">Corner (-x+y+z)</option>
+                                <option value="8">Corner (+x-y+z)</option>
+                                <option value="9">Corner (+x+y-z)</option>
+                                <option value="10">Corner (-x-y+z)</option>
+                                <option value="11">Corner (+x-y-z)</option>
+                                <option value="12">Corner (-x+y-z)</option>
+                                <option value="13">Corner (-x-y-z)</option>
+                            </select>
                             <button id="clear-scene">Clear</button>
                         </div>
                     </div>

@@ -254,10 +254,17 @@ function addGrid(size, typeSelect, pattern3D, sel) {
     nextBtn.textContent = '▶';
     nextBtn.style.padding = '5px 10px';
     nextBtn.style.cursor = 'pointer';
-    
+
+    const clearBtn = document.createElement('button');
+    clearBtn.textContent = 'Clear';
+    clearBtn.style.padding = '5px 10px';
+    clearBtn.style.cursor = 'pointer';
+    clearBtn.style.marginLeft = 'auto';
+
     layerControls.appendChild(prevBtn);
     layerControls.appendChild(layerLabel);
     layerControls.appendChild(nextBtn);
+    layerControls.appendChild(clearBtn);
     wrapperContainer.appendChild(layerControls);
     
     const gridContainer = document.createElement('div');
@@ -323,7 +330,21 @@ function addGrid(size, typeSelect, pattern3D, sel) {
             updateGrid();
         }
     });
-    
+
+    clearBtn.addEventListener('click', () => {
+        if (pattern3D) {
+            for (let layer = 0; layer < pattern3D.length; layer++) {
+                for (let row = 0; row < pattern3D[layer].length; row++) {
+                    for (let col = 0; col < pattern3D[layer][row].length; col++) {
+                        pattern3D[layer][row][col] = 0;
+                    }
+                }
+            }
+            updateFractalTypeParameter({pattern: pattern3D}, sel, 'pattern', pattern3D);
+            updateGrid();
+        }
+    });
+
     // Button toggle handlers
     const buttons = gridContainer.querySelectorAll('button');
     buttons.forEach((btn, i) => {
@@ -435,10 +456,11 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // cycle view handler - look at cube corner
-    if (cycleViewBtn) cycleViewBtn.addEventListener('click', () => {
+    // view select handler - jump directly to chosen preset
+    const cycleViewSelect = /** @type {HTMLSelectElement|null} */ (cycleViewBtn);
+    if (cycleViewSelect) cycleViewSelect.addEventListener('change', () => {
         if (viewAngles.length === 0) return;
-        currentViewIndex = (currentViewIndex + 1) % viewAngles.length;
+        currentViewIndex = Number(cycleViewSelect.value);
         perspectiveCamera.position.copy(viewAngles[currentViewIndex]);
         orthographicCamera.position.copy(viewAngles[currentViewIndex]);
         controls.target.set(0, 0, 0);
@@ -469,19 +491,100 @@ window.addEventListener('DOMContentLoaded', () => {
             const existing = document.getElementById('slider-Recursive Depth');
             if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
         } catch (e) { /* ignore */ }
-
         try {
             const existing = document.getElementById('slider-Split Width');
             if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
         } catch (e) { /* ignore */ }
-
         try {
             const existing = document.getElementById('slider-Thickness');
             if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
         } catch (e) { /* ignore */ }
+        try {
+            const existing = document.getElementById('slider-X Rotation (Pitch)');
+            if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
+        } catch (e) { /* ignore */ }
+        try {
+            const existing = document.getElementById('slider-Y Rotation (Yaw)');
+            if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
+        } catch (e) { /* ignore */ }
+        try {
+            const existing = document.getElementById('slider-Z Rotation (Roll)');
+            if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
+        } catch (e) { /* ignore */ }
+        try {
+            const existing = document.getElementById('reset-rotation-btn');
+            if (existing) existing.remove();
+        } catch (e) { /* ignore */ }
         for (const parameter in parameters) {
         // console.log(parameter);
             switch (parameter) {
+                case "xRotation": // rotation for generation
+                    {
+                        const sliderContainer = addSlider("X Rotation (Pitch)", -180, 180, parameters.xRotation, 5, typeSelect);
+                        if (!sliderContainer) break;
+                        // cast as input elements
+                        const slider = /** @type {HTMLInputElement|null} */ (sliderContainer.querySelector('input[type="range"]'));
+                        const valueSpan = /** @type {HTMLElement|null} */ (sliderContainer.querySelector('span'));
+                        if (slider) {
+                            slider.addEventListener('input', () => {
+                                if (valueSpan) valueSpan.textContent = String(slider.value);
+                                updateFractalTypeParameter(parameters, sel, 'xRotation', Number(slider.value));
+                            });
+                        }
+
+                        // Reset rotation button — sits below X slider (which renders last/lowest)
+                        const resetBtn = document.createElement('button');
+                        resetBtn.id = 'reset-rotation-btn';
+                        resetBtn.textContent = 'Reset Rotation';
+                        resetBtn.style.marginTop = '8px';
+                        resetBtn.style.padding = '5px 10px';
+                        resetBtn.style.cursor = 'pointer';
+                        resetBtn.style.width = 'fit-content';
+                        resetBtn.addEventListener('click', () => {
+                            ['X Rotation (Pitch)', 'Y Rotation (Yaw)', 'Z Rotation (Roll)'].forEach((name) => {
+                                const s = /** @type {HTMLInputElement|null} */ (document.getElementById('slider-' + name));
+                                const v = document.getElementById('slider-' + name + 'value');
+                                if (s) { s.value = '0'; if (v) v.textContent = '0'; }
+                            });
+                            updateFractalTypeParameter(parameters, sel, 'xRotation', 0);
+                            updateFractalTypeParameter(parameters, sel, 'yRotation', 0);
+                            updateFractalTypeParameter(parameters, sel, 'zRotation', 0);
+                        });
+                        sliderContainer.insertAdjacentElement('afterend', resetBtn);
+                    }
+                    break;
+                case "yRotation":
+                    {
+                        const sliderContainer = addSlider("Y Rotation (Yaw)", -180, 180, parameters.yRotation, 5, typeSelect);
+                        if (!sliderContainer) break;
+                        // cast as input elements
+                        const slider = /** @type {HTMLInputElement|null} */ (sliderContainer.querySelector('input[type="range"]'));
+                        const valueSpan = /** @type {HTMLElement|null} */ (sliderContainer.querySelector('span'));
+                        if (slider) {
+                            slider.addEventListener('input', () => {
+                                if (valueSpan) valueSpan.textContent = String(slider.value);
+                                updateFractalTypeParameter(parameters, sel, 'yRotation', Number(slider.value));
+                            });
+                        }
+                    }
+                    break;
+                case "zRotation":
+                    {
+                        const sliderContainer = addSlider("Z Rotation (Roll)", -180, 180, parameters.zRotation, 5, typeSelect);
+                        if (!sliderContainer) break;
+                        // cast as input elements
+                        const slider = /** @type {HTMLInputElement|null} */ (sliderContainer.querySelector('input[type="range"]'));
+                        const valueSpan = /** @type {HTMLElement|null} */ (sliderContainer.querySelector('span'));
+                        if (slider) {
+                            slider.addEventListener('input', () => {
+                                if (valueSpan) valueSpan.textContent = String(slider.value);
+                                updateFractalTypeParameter(parameters, sel, 'zRotation', Number(slider.value));
+                            });
+                        }
+
+
+                    }
+                    break;
                 case "splitWidth":
                     {
                         const sliderContainer = addSlider("Split Width", 0, .5, parameters.splitWidth, .01, typeSelect);
