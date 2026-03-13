@@ -491,27 +491,29 @@ window.addEventListener('DOMContentLoaded', () => {
             const existing = document.getElementById('slider-Recursive Depth');
             if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
         } catch (e) { /* ignore */ }
-
         try {
             const existing = document.getElementById('slider-Split Width');
             if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
         } catch (e) { /* ignore */ }
-
         try {
             const existing = document.getElementById('slider-Thickness');
             if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
         } catch (e) { /* ignore */ }
         try {
-            const existing = document.getElementById('slider-X Rotation');
+            const existing = document.getElementById('slider-X Rotation (Pitch)');
             if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
         } catch (e) { /* ignore */ }
         try {
-            const existing = document.getElementById('slider-Y Rotation');
+            const existing = document.getElementById('slider-Y Rotation (Yaw)');
             if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
         } catch (e) { /* ignore */ }
         try {
-            const existing = document.getElementById('slider-Z Rotation');
+            const existing = document.getElementById('slider-Z Rotation (Roll)');
             if (existing && existing.parentElement && existing.parentElement.parentElement) existing.parentElement.parentElement.remove();
+        } catch (e) { /* ignore */ }
+        try {
+            const existing = document.getElementById('reset-rotation-btn');
+            if (existing) existing.remove();
         } catch (e) { /* ignore */ }
         for (const parameter in parameters) {
         // console.log(parameter);
@@ -532,6 +534,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
                         // Reset rotation button — sits below X slider (which renders last/lowest)
                         const resetBtn = document.createElement('button');
+                        resetBtn.id = 'reset-rotation-btn';
                         resetBtn.textContent = 'Reset Rotation';
                         resetBtn.style.marginTop = '8px';
                         resetBtn.style.padding = '5px 10px';
